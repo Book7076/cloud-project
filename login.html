@@ -1,104 +1,672 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เข้าสู่ระบบ - Typing Quest</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Sign In — Typing Quest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        :root {
+            --bg: #060810;
+            --surface: #0d1117;
+            --surface2: #161b22;
+            --border: #21262d;
+            --border-hover: #30363d;
+            --accent: #00d4ff;
+            --accent2: #7c3aed;
+            --green: #39d353;
+            --red: #f85149;
+            --text: #e6edf3;
+            --muted: #484f58;
+            --muted2: #6e7681;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        /* ── Animated grid background ── */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,212,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,255,0.025) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Radial glow blobs */
+        .bg-glow {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-glow::before {
+            content: '';
+            position: absolute;
+            width: 600px; height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%);
+            top: -200px; left: -200px;
+            animation: blob1 18s ease-in-out infinite alternate;
+        }
+
+        .bg-glow::after {
+            content: '';
+            position: absolute;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,212,255,0.07) 0%, transparent 70%);
+            bottom: -150px; right: -150px;
+            animation: blob2 14s ease-in-out infinite alternate;
+        }
+
+        @keyframes blob1 {
+            from { transform: translate(0, 0) scale(1); }
+            to   { transform: translate(60px, 40px) scale(1.2); }
+        }
+        @keyframes blob2 {
+            from { transform: translate(0, 0) scale(1); }
+            to   { transform: translate(-40px, -60px) scale(1.15); }
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px; height: 2px;
+            background: var(--accent);
+            border-radius: 50%;
+            opacity: 0;
+            animation: rise linear infinite;
+        }
+
+        @keyframes rise {
+            0%   { transform: translateY(0) translateX(0); opacity: 0; }
+            10%  { opacity: 0.4; }
+            90%  { opacity: 0.1; }
+            100% { transform: translateY(-100vh) translateX(var(--drift)); opacity: 0; }
+        }
+
+        /* ── Main card ── */
+        .wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+            animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(24px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Brand bar above card */
+        .brand {
+            text-align: center;
+            margin-bottom: 28px;
+            animation: fadeUp 0.5s 0.1s cubic-bezier(0.16,1,0.3,1) both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .brand-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px; height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(0,212,255,0.12), rgba(124,58,237,0.12));
+            border: 1px solid rgba(0,212,255,0.2);
+            margin-bottom: 14px;
+            animation: iconPulse 3s ease-in-out infinite;
+            box-shadow: 0 0 24px rgba(0,212,255,0.1);
+        }
+
+        @keyframes iconPulse {
+            0%,100% { box-shadow: 0 0 20px rgba(0,212,255,0.1); }
+            50%      { box-shadow: 0 0 36px rgba(0,212,255,0.25); }
+        }
+
+        .brand-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 32px;
+            letter-spacing: 5px;
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 36px 36px 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Top accent line */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 5%, var(--accent) 50%, transparent 95%);
+            opacity: 0.5;
+        }
+
+        /* Scan-line texture */
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.025) 2px,
+                rgba(0,0,0,0.025) 4px
+            );
+            pointer-events: none;
+            border-radius: inherit;
+        }
+
+        /* ── Tabs ── */
+        .tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 28px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px;
+            border-radius: 7px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted2);
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+        }
+
+        .tab-btn.active {
+            background: var(--surface);
+            color: var(--accent);
+            box-shadow: 0 0 0 1px var(--border), 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        /* ── Form fields ── */
+        .field {
+            margin-bottom: 14px;
+            position: relative;
+            z-index: 1;
+            animation: fieldIn 0.4s cubic-bezier(0.16,1,0.3,1) both;
+        }
+
+        .field:nth-child(1) { animation-delay: 0.05s; }
+        .field:nth-child(2) { animation-delay: 0.1s; }
+
+        @keyframes fieldIn {
+            from { opacity: 0; transform: translateX(-8px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        .field-label {
+            font-size: 10px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--muted2);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            pointer-events: none;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .field-input {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 13px 14px 13px 42px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            letter-spacing: 0.5px;
+        }
+
+        .field-input::placeholder {
+            color: var(--muted);
+            font-weight: 400;
+        }
+
+        .field-input:focus {
+            border-color: var(--accent);
+            background: rgba(0,212,255,0.03);
+            box-shadow: 0 0 0 3px rgba(0,212,255,0.08);
+        }
+
+        .field-input:focus ~ .input-icon,
+        .input-wrap:focus-within .input-icon {
+            color: var(--accent);
+        }
+
+        /* password toggle */
+        .pw-toggle {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            padding: 2px;
+            display: flex;
+            align-items: center;
+            transition: color 0.2s;
+        }
+        .pw-toggle:hover { color: var(--text); }
+
+        /* ── Error message ── */
+        .error-msg {
+            font-size: 12px;
+            color: var(--red);
+            min-height: 20px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+            z-index: 1;
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: all 0.2s;
+        }
+
+        .error-msg.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── Submit button ── */
+        .submit-btn {
+            width: 100%;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 10px;
+            padding: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 0 20px rgba(0,212,255,0.25);
+            margin-bottom: 20px;
+        }
+
+        .submit-btn:hover {
+            background: #33ddff;
+            transform: translateY(-1px);
+            box-shadow: 0 0 32px rgba(0,212,255,0.4);
+        }
+
+        .submit-btn:active { transform: translateY(0); }
+
+        .submit-btn.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-top-color: var(--bg);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        .submit-btn.loading .spinner { display: block; }
+        .submit-btn.loading .btn-text { display: none; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Footer divider ── */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .divider-text {
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        /* ── Success flash ── */
+        .success-flash {
+            position: fixed;
+            inset: 0;
+            background: var(--green);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 999;
+            animation: none;
+        }
+
+        .success-flash.active {
+            animation: flash 0.6s ease-out forwards;
+        }
+
+        @keyframes flash {
+            0%   { opacity: 0; }
+            20%  { opacity: 0.12; }
+            100% { opacity: 0; }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 480px) {
+            .card { padding: 28px 24px 24px; }
+            .brand-name { font-size: 26px; }
+        }
+    </style>
 </head>
-<body class="bg-slate-950 text-white font-mono flex items-center justify-center min-h-screen p-4 selection:bg-cyan-900">
+<body>
 
-    <div class="max-w-md w-full">
-        <!-- หน้าจอ Login / Register -->
-        <div class="bg-slate-900 border border-slate-800 p-10 rounded-3xl text-center shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-            <div class="text-5xl mb-6 text-cyan-400">🔐</div>
-            <h2 id="auth-title" class="text-3xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                เข้าสู่ระบบ
-            </h2>
-            
-            <form id="auth-form" class="space-y-4" onsubmit="handleAuth(event)">
-                <input type="text" id="username" placeholder="ชื่อผู้ใช้ (Username)" required
-                    class="w-full bg-slate-950 border border-slate-700 focus:border-cyan-500 px-4 py-3 rounded-xl text-white outline-none transition-colors" />
-                
-                <input type="password" id="password" placeholder="รหัสผ่าน (Password)" required
-                    class="w-full bg-slate-950 border border-slate-700 focus:border-cyan-500 px-4 py-3 rounded-xl text-white outline-none transition-colors" />
-                
-                <p id="auth-error" class="text-red-500 text-sm h-4"></p>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div class="particles" id="particles"></div>
+<div class="success-flash" id="success-flash"></div>
 
-                <button type="submit" id="auth-submit-btn" class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 px-8 py-3 rounded-xl font-bold text-lg transition-all shadow-[0_0_15px_rgba(34,211,238,0.3)]">
-                    เข้าสู่ระบบ
-                </button>
-            </form>
+<div class="wrapper">
 
-            <div class="mt-6 text-slate-400 text-sm">
-                <span id="auth-toggle-text">ยังไม่มีบัญชีใช่ไหม?</span>
-                <button onclick="toggleAuthMode()" class="text-cyan-400 font-bold hover:underline ml-1 focus:outline-none">
-                    <span id="auth-toggle-btn">สมัครสมาชิก</span>
-                </button>
+    <!-- Brand -->
+    <div class="brand">
+        <div style="display:flex;flex-direction:column;align-items:center">
+            <div class="brand-logo">
+                <i data-lucide="keyboard" width="26" height="26" stroke="#00d4ff"></i>
             </div>
+            <div class="brand-name">TYPING QUEST</div>
         </div>
     </div>
 
-    <script>
-        // เช็คว่าถ้าเคยล็อกอินไว้แล้ว ให้เด้งไปหน้าเกมเลย
-        if (localStorage.getItem('username')) {
-            window.location.href = '/';
+    <!-- Card -->
+    <div class="card">
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" id="tab-login" onclick="setMode(true)">
+                <i data-lucide="log-in" width="13" height="13"></i> Sign In
+            </button>
+            <button class="tab-btn" id="tab-register" onclick="setMode(false)">
+                <i data-lucide="user-plus" width="13" height="13"></i> Register
+            </button>
+        </div>
+
+        <!-- Form -->
+        <form id="auth-form" onsubmit="handleAuth(event)" autocomplete="off" novalidate>
+
+            <!-- Username -->
+            <div class="field">
+                <div class="field-label">
+                    <i data-lucide="at-sign" width="10" height="10"></i> Username
+                </div>
+                <div class="input-wrap">
+                    <span class="input-icon"><i data-lucide="user" width="15" height="15"></i></span>
+                    <input type="text" id="username" class="field-input" placeholder="your_username" required spellcheck="false" autocomplete="username" />
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="field">
+                <div class="field-label">
+                    <i data-lucide="lock" width="10" height="10"></i> Password
+                </div>
+                <div class="input-wrap">
+                    <span class="input-icon"><i data-lucide="key-round" width="15" height="15"></i></span>
+                    <input type="password" id="password" class="field-input" placeholder="••••••••" required autocomplete="current-password" style="padding-right:44px" />
+                    <button type="button" class="pw-toggle" onclick="togglePw()" id="pw-toggle-btn">
+                        <i data-lucide="eye" width="15" height="15" id="pw-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Error -->
+            <div class="error-msg" id="auth-error">
+                <i data-lucide="alert-circle" width="12" height="12"></i>
+                <span id="error-text"></span>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="submit-btn" id="auth-submit-btn">
+                <div class="spinner"></div>
+                <span class="btn-text" id="btn-label" style="display:flex;align-items:center;gap:8px">
+                    <i data-lucide="log-in" width="15" height="15" id="btn-icon"></i>
+                    <span id="btn-text-inner">Sign In</span>
+                </span>
+            </button>
+
+        </form>
+
+        <!-- Divider + toggle -->
+        <div class="divider">
+            <div class="divider-line"></div>
+            <span class="divider-text">or</span>
+            <div class="divider-line"></div>
+        </div>
+
+        <div style="text-align:center;font-size:12px;color:var(--muted2);position:relative;z-index:1">
+            <span id="toggle-prompt">Don't have an account?</span>
+            <button onclick="setMode(!isLoginMode)" style="background:none;border:none;color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;margin-left:6px;text-decoration:underline;text-underline-offset:3px" id="toggle-link">
+                Create one
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // ── Particles ──
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 20; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const x = Math.random() * 100;
+        const dur = 8 + Math.random() * 12;
+        const delay = Math.random() * 10;
+        const drift = (Math.random() - 0.5) * 80;
+        p.style.cssText = `left:${x}%;bottom:0;animation-duration:${dur}s;animation-delay:${delay}s;--drift:${drift}px;width:${1+Math.random()*2}px;height:${1+Math.random()*2}px;opacity:0;background:${Math.random()>0.6?'#00d4ff':'#7c3aed'}`;
+        container.appendChild(p);
+    }
+
+    // ── Auth redirect ──
+    if (localStorage.getItem('username')) window.location.href = '/';
+
+    let isLoginMode = true;
+    let pwVisible = false;
+
+    function setMode(loginMode) {
+        isLoginMode = loginMode;
+        document.getElementById('auth-error').classList.remove('visible');
+        document.getElementById('error-text').innerText = '';
+        document.getElementById('password').value = '';
+        document.getElementById('username').value = '';
+
+        // tabs
+        document.getElementById('tab-login').className    = 'tab-btn' + (loginMode ? ' active' : '');
+        document.getElementById('tab-register').className = 'tab-btn' + (!loginMode ? ' active' : '');
+
+        // button
+        document.getElementById('btn-text-inner').innerText = loginMode ? 'Sign In' : 'Create Account';
+        document.getElementById('btn-icon').setAttribute('data-lucide', loginMode ? 'log-in' : 'user-plus');
+
+        // toggle text
+        document.getElementById('toggle-prompt').innerText = loginMode ? "Don't have an account?" : 'Already have an account?';
+        document.getElementById('toggle-link').innerText   = loginMode ? 'Create one' : 'Sign in';
+
+        lucide.createIcons();
+
+        // re-animate fields
+        document.querySelectorAll('.field').forEach((f, i) => {
+            f.style.animation = 'none';
+            f.offsetHeight;
+            f.style.animation = `fieldIn 0.35s ${i*0.05}s cubic-bezier(0.16,1,0.3,1) both`;
+        });
+
+        document.getElementById('username').focus();
+    }
+
+    function togglePw() {
+        pwVisible = !pwVisible;
+        const inp = document.getElementById('password');
+        const icon = document.getElementById('pw-icon');
+        inp.type = pwVisible ? 'text' : 'password';
+        icon.setAttribute('data-lucide', pwVisible ? 'eye-off' : 'eye');
+        lucide.createIcons();
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('auth-error');
+        document.getElementById('error-text').innerText = msg;
+        el.classList.add('visible');
+        // shake input
+        document.getElementById('username').style.borderColor = 'var(--red)';
+        setTimeout(() => document.getElementById('username').style.borderColor = '', 1200);
+    }
+
+    async function handleAuth(event) {
+        event.preventDefault();
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const btn = document.getElementById('auth-submit-btn');
+
+        if (!username || !password) {
+            showError('Please fill in all fields.');
+            return;
         }
 
-        let isLoginMode = true;
+        btn.classList.add('loading');
+        document.getElementById('auth-error').classList.remove('visible');
 
-        function toggleAuthMode() {
-            isLoginMode = !isLoginMode;
-            document.getElementById('auth-error').innerText = ''; 
-            document.getElementById('password').value = ''; 
-            
-            if (isLoginMode) {
-                document.getElementById('auth-title').innerText = 'เข้าสู่ระบบ';
-                document.getElementById('auth-submit-btn').innerText = 'เข้าสู่ระบบ';
-                document.getElementById('auth-toggle-text').innerText = 'ยังไม่มีบัญชีใช่ไหม?';
-                document.getElementById('auth-toggle-btn').innerText = 'สมัครสมาชิก';
+        const endpoint = isLoginMode ? '/api/login' : '/api/register';
+
+        try {
+            const res = await fetch(`http://localhost:3000${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                showError(data.error || 'Something went wrong.');
             } else {
-                document.getElementById('auth-title').innerText = 'สมัครสมาชิกใหม่';
-                document.getElementById('auth-submit-btn').innerText = 'ยืนยันการสมัคร';
-                document.getElementById('auth-toggle-text').innerText = 'มีบัญชีอยู่แล้ว?';
-                document.getElementById('auth-toggle-btn').innerText = 'เข้าสู่ระบบ';
-            }
-        }
-
-        async function handleAuth(event) {
-            event.preventDefault();
-
-            const usernameInput = document.getElementById('username').value.trim();
-            const passwordInput = document.getElementById('password').value;
-            const errorElement = document.getElementById('auth-error');
-
-            const endpoint = isLoginMode ? '/api/login' : '/api/register';
-            
-            try {
-                const response = await fetch(`http://localhost:3000${endpoint}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: usernameInput, password: passwordInput })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    errorElement.innerText = data.error; 
+                if (!isLoginMode) {
+                    // success flash then switch to login
+                    document.getElementById('success-flash').classList.add('active');
+                    setTimeout(() => {
+                        document.getElementById('success-flash').classList.remove('active');
+                        setMode(true);
+                    }, 600);
                 } else {
-                    if (!isLoginMode) {
-                        alert('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ');
-                        toggleAuthMode(); 
-                    } else {
-                        // ล็อกอินสำเร็จ -> จำชื่อผู้ใช้ลงในเครื่อง (localStorage) แล้วพาไปหน้าเกม
-                        localStorage.setItem('username', data.user.username);
-                        window.location.href = '/';
-                    }
+                    // login success → flash + redirect
+                    document.getElementById('success-flash').classList.add('active');
+                    localStorage.setItem('username', data.user.username);
+                    setTimeout(() => window.location.href = '/', 400);
                 }
-            } catch (error) {
-                errorElement.innerText = 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้';
             }
+        } catch {
+            showError('Cannot connect to server.');
+        } finally {
+            btn.classList.remove('loading');
         }
-    </script>
+    }
+
+    document.addEventListener('DOMContentLoaded', () => lucide.createIcons());
+</script>
 </body>
 </html>

@@ -1,435 +1,1069 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Typing Quest</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <style>
-        .hidden { display: none !important; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+        /* ===== THEME VARIABLES ===== */
+        :root {
+            --bg: #060810; --surface: #0d1117; --surface2: #161b22;
+            --border: #21262d; --accent: #00d4ff; --accent2: #7c3aed;
+            --green: #39d353; --yellow: #f1c40f; --red: #f85149;
+            --orange: #f97316; --text: #e6edf3; --muted: #484f58;
+        }
+        [data-theme="amber"] {
+            --accent:#f59e0b; --accent2:#d97706; --green:#84cc16;
+            --bg:#0a0800; --surface:#120f00; --surface2:#1a1500; --border:#292000;
+        }
+        [data-theme="rose"] {
+            --accent:#f43f5e; --accent2:#be123c; --green:#34d399;
+            --bg:#0a0608; --surface:#120810; --surface2:#1a0d18; --border:#291020;
+        }
+        [data-theme="emerald"] {
+            --accent:#10b981; --accent2:#059669; --green:#34d399;
+            --bg:#060a08; --surface:#0a120d; --surface2:#111a14; --border:#182619;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background:var(--bg); color:var(--text);
+            font-family:'JetBrains Mono',monospace;
+            min-height:100vh; display:flex; align-items:center;
+            justify-content:center; padding:20px; overflow-x:hidden;
+        }
+        body::before {
+            content:''; position:fixed; inset:0;
+            background-image:
+                linear-gradient(rgba(0,212,255,0.025) 1px,transparent 1px),
+                linear-gradient(90deg,rgba(0,212,255,0.025) 1px,transparent 1px);
+            background-size:40px 40px; pointer-events:none; z-index:0;
+        }
+        body::after {
+            content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%;
+            background:radial-gradient(ellipse at 20% 50%,rgba(124,58,237,0.06) 0%,transparent 50%),
+                       radial-gradient(ellipse at 80% 20%,rgba(0,212,255,0.06) 0%,transparent 50%);
+            pointer-events:none; z-index:0;
+            animation:drift 20s ease-in-out infinite alternate;
+        }
+        @keyframes drift{from{transform:translate(0,0) rotate(0deg)}to{transform:translate(30px,-20px) rotate(2deg)}}
+
+        .container{max-width:760px;width:100%;position:relative;z-index:1;}
+        .hidden{display:none !important;}
+
+        /* CARD */
+        .card{
+            background:var(--surface);border:1px solid var(--border);
+            border-radius:16px;padding:36px;position:relative;overflow:hidden;
+        }
+        .card::before{
+            content:'';position:absolute;top:0;left:0;right:0;height:1px;
+            background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.5;
+        }
+        .scanline{
+            position:absolute;inset:0;
+            background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.025) 2px,rgba(0,0,0,0.025) 4px);
+            pointer-events:none;border-radius:inherit;
+        }
+
+        /* LOGO */
+        .logo-area{text-align:center;margin-bottom:24px;}
+        .logo-icon{display:inline-flex;margin-bottom:10px;filter:drop-shadow(0 0 20px rgba(0,212,255,0.6));animation:float 3s ease-in-out infinite;}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+        .logo-title{
+            font-family:'Bebas Neue',sans-serif;font-size:68px;
+            letter-spacing:6px;line-height:1;
+            background:linear-gradient(135deg,var(--accent),#a78bfa);
+            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+        }
+        .welcome-text{color:var(--green);font-size:13px;margin-top:5px;letter-spacing:1px;}
+        .welcome-text span{color:var(--accent);font-weight:700;}
+
+        /* BUTTONS */
+        .icon-btn{
+            background:none;border:1px solid var(--border);color:var(--muted);
+            padding:7px 12px;border-radius:8px;cursor:pointer;
+            font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+            transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;
+        }
+        .icon-btn:hover{border-color:var(--accent);color:var(--accent);}
+        .icon-btn.danger:hover{border-color:var(--red);color:var(--red);}
+        .btn-primary{
+            background:var(--accent);color:var(--bg);border:none;
+            padding:13px 30px;border-radius:10px;
+            font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;
+            cursor:pointer;transition:all 0.2s;letter-spacing:1px;
+            box-shadow:0 0 20px rgba(0,212,255,0.3);
+            display:inline-flex;align-items:center;gap:8px;
+        }
+        .btn-primary:hover{filter:brightness(1.15);transform:translateY(-2px);box-shadow:0 0 32px rgba(0,212,255,0.5);}
+        .btn-secondary{
+            background:transparent;color:var(--yellow);border:1px solid rgba(241,196,15,0.4);
+            padding:13px 20px;border-radius:10px;
+            font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+            cursor:pointer;transition:all 0.2s;letter-spacing:1px;
+            display:inline-flex;align-items:center;gap:8px;
+        }
+        .btn-secondary:hover{background:rgba(241,196,15,0.08);transform:translateY(-2px);}
+        .btn-ghost{
+            background:transparent;color:var(--muted);border:1px solid var(--border);
+            padding:11px 20px;border-radius:10px;
+            font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+            cursor:pointer;transition:all 0.2s;
+            display:inline-flex;align-items:center;gap:8px;
+        }
+        .btn-ghost:hover{color:var(--text);border-color:var(--muted);}
+        .action-row{display:flex;gap:10px;justify-content:center;}
+
+        /* PILL BUTTONS */
+        .pill-btn{
+            padding:7px 12px;border-radius:7px;border:1px solid var(--border);
+            background:transparent;color:var(--muted);cursor:pointer;
+            font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;
+            transition:all 0.2s;
+        }
+        .pill-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.05);}
+        .pill-btn.active-cyan{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.1);box-shadow:0 0 10px rgba(0,212,255,0.2);}
+        .pill-btn.active-green{border-color:var(--green);color:var(--green);background:rgba(57,211,83,0.1);box-shadow:0 0 10px rgba(57,211,83,0.2);}
+        .pill-btn:disabled{opacity:0.3;pointer-events:none;}
+
+        /* SETTINGS */
+        .settings-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+        .setting-block{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+        .setting-label{
+            font-size:9px;letter-spacing:3px;text-transform:uppercase;
+            color:var(--muted);margin-bottom:12px;
+            display:flex;align-items:center;gap:5px;
+        }
+        .btn-group{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+
+        /* MODE BUTTONS */
+        .mode-btn{
+            flex:1;padding:8px 4px;border-radius:7px;border:1px solid var(--border);
+            background:transparent;color:var(--muted);cursor:pointer;
+            font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;
+            letter-spacing:1px;transition:all 0.2s;
+            display:flex;flex-direction:column;align-items:center;gap:4px;
+        }
+        .mode-btn:hover{border-color:var(--accent);color:var(--accent);}
+        .mode-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.08);}
+        .mode-btn.active-red{border-color:var(--red);color:var(--red);background:rgba(248,81,73,0.08);}
+        .mode-btn.active-yellow{border-color:var(--yellow);color:var(--yellow);background:rgba(241,196,15,0.08);}
+
+        /* THEME ROW */
+        .theme-row{
+            display:flex;align-items:center;justify-content:space-between;
+            margin-bottom:20px;padding:14px 18px;
+            background:var(--surface2);border:1px solid var(--border);border-radius:12px;
+        }
+        .theme-dots{display:flex;gap:8px;}
+        .theme-dot{
+            width:22px;height:22px;border-radius:50%;cursor:pointer;
+            border:2px solid transparent;transition:all 0.2s;
+        }
+        .theme-dot:hover,.theme-dot.active{border-color:var(--text);transform:scale(1.15);}
+        .theme-dot[data-t="default"]{background:linear-gradient(135deg,#00d4ff,#7c3aed);}
+        .theme-dot[data-t="amber"]  {background:linear-gradient(135deg,#f59e0b,#d97706);}
+        .theme-dot[data-t="rose"]   {background:linear-gradient(135deg,#f43f5e,#be123c);}
+        .theme-dot[data-t="emerald"]{background:linear-gradient(135deg,#10b981,#059669);}
+
+        /* SOUND / DAILY */
+        .sound-toggle{
+            display:inline-flex;align-items:center;gap:7px;
+            font-size:11px;color:var(--muted);cursor:pointer;
+            padding:6px 10px;border-radius:7px;border:1px solid var(--border);
+            background:none;font-family:'JetBrains Mono',monospace;font-weight:700;
+            transition:all 0.2s;letter-spacing:1px;
+        }
+        .sound-toggle:hover{border-color:var(--accent);color:var(--accent);}
+        .sound-toggle.on{border-color:var(--green);color:var(--green);}
+        .daily-badge{
+            display:inline-flex;align-items:center;gap:7px;
+            padding:6px 12px;border-radius:8px;
+            background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.35);
+            color:var(--orange);font-size:10px;font-weight:700;letter-spacing:1.5px;
+            cursor:pointer;transition:all 0.2s;
+            font-family:'JetBrains Mono',monospace;
+        }
+        .daily-badge:hover{background:rgba(249,115,22,0.18);transform:translateY(-1px);}
+        .daily-badge.done{opacity:0.4;pointer-events:none;}
+        .high-score-badge{margin-top:16px;text-align:center;color:var(--yellow);font-size:12px;}
+
+        /* COUNTDOWN */
+        #countdown-overlay{
+            position:fixed;inset:0;background:rgba(6,8,16,0.92);
+            display:flex;flex-direction:column;align-items:center;justify-content:center;
+            z-index:100;backdrop-filter:blur(4px);
+        }
+        .countdown-num{
+            font-family:'Bebas Neue',sans-serif;font-size:160px;line-height:1;
+            color:var(--accent);letter-spacing:4px;
+            text-shadow:0 0 60px rgba(0,212,255,0.5);
+            animation:countPop 0.9s ease-out;
+        }
+        @keyframes countPop{
+            0%{transform:scale(1.6);opacity:0}
+            40%{transform:scale(0.95);opacity:1}
+            100%{transform:scale(1);opacity:1}
+        }
+        .countdown-label{font-size:13px;letter-spacing:4px;color:var(--muted);margin-top:8px;}
+
+        /* HUD */
+        .hud{
+            display:grid;grid-template-columns:1fr auto 1fr 1fr;
+            align-items:center;
+            background:var(--surface);border:1px solid var(--border);
+            border-radius:12px;padding:14px 20px;margin-bottom:14px;gap:12px;
+        }
+        .hud-timer{
+            font-size:26px;font-weight:800;color:var(--accent);
+            display:flex;align-items:center;gap:7px;font-variant-numeric:tabular-nums;
+        }
+        .hud-timer.danger{color:var(--red);animation:pulse-danger 0.5s ease-in-out infinite alternate;}
+        @keyframes pulse-danger{from{opacity:1}to{opacity:0.4}}
+        .hud-combo{text-align:center;}
+        .combo-badge{
+            display:inline-flex;align-items:center;gap:5px;
+            padding:5px 12px;border-radius:6px;font-size:12px;font-weight:800;
+            color:var(--muted);border:1px solid var(--border);transition:all 0.3s;
+        }
+        .combo-badge.active{
+            color:var(--yellow);border-color:rgba(241,196,15,0.5);
+            background:rgba(241,196,15,0.08);box-shadow:0 0 14px rgba(241,196,15,0.2);
+        }
+        .hud-wpm{text-align:center;}
+        .wpm-value{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);letter-spacing:2px;line-height:1;}
+        .wpm-label{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+        .hud-score{text-align:right;}
+        .score-value{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--green);line-height:1;letter-spacing:2px;}
+        .score-meta{font-size:9px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:2px;}
+
+        /* GAME CARD */
+        .game-card{
+            background:var(--surface);border:1px solid var(--border);
+            border-radius:16px;padding:44px 36px 28px;
+            text-align:center;position:relative;overflow:hidden;
+        }
+        .time-bar-track{position:absolute;top:0;left:0;right:0;height:3px;background:var(--surface2);}
+        .time-bar-fill{
+            height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));
+            transition:width 1s linear;box-shadow:0 0 8px rgba(0,212,255,0.6);
+        }
+        .lives-bar{display:flex;justify-content:center;gap:8px;margin-bottom:16px;}
+        .life-dot{
+            width:10px;height:10px;border-radius:50%;
+            background:var(--red);box-shadow:0 0 8px rgba(248,81,73,0.6);transition:all 0.3s;
+        }
+        .life-dot.lost{background:var(--border);box-shadow:none;}
+        .word-display{
+            font-family:'Bebas Neue',sans-serif;font-size:68px;
+            letter-spacing:10px;margin-bottom:28px;
+            min-height:76px;display:flex;align-items:center;
+            justify-content:center;flex-wrap:wrap;gap:2px;
+        }
+        .word-loading{font-size:14px;color:var(--muted);letter-spacing:3px;animation:pulse 1.5s ease-in-out infinite;}
+        @keyframes pulse{0%,100%{opacity:0.4}50%{opacity:1}}
+        .char-default{color:#3d4551;transition:color 0.05s;}
+        .char-correct{color:var(--green);text-shadow:0 0 10px rgba(57,211,83,0.8);}
+        .char-wrong{color:var(--red);text-shadow:0 0 8px rgba(248,81,73,0.8);text-decoration:underline;}
+        .type-input{
+            width:100%;background:var(--surface2);border:2px solid var(--border);
+            border-radius:10px;padding:14px 18px;
+            font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;
+            color:var(--text);text-align:center;outline:none;
+            transition:border-color 0.2s,box-shadow 0.2s;letter-spacing:4px;
+        }
+        .type-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,0.08);}
+        .type-input::placeholder{color:var(--muted);letter-spacing:1px;font-size:13px;font-weight:400;}
+        .type-input.shake{animation:shake 0.3s ease;}
+        @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+        .live-stats{
+            display:flex;justify-content:space-between;align-items:center;
+            margin-top:14px;padding-top:14px;border-top:1px solid var(--border);
+            font-size:10px;color:var(--muted);letter-spacing:1px;
+        }
+        .live-stats .correct{color:var(--green);}
+        .live-stats .wrong{color:var(--red);}
+
+        /* END SCREEN */
+        .result-title{
+            font-family:'Bebas Neue',sans-serif;font-size:46px;
+            letter-spacing:4px;color:var(--red);text-align:center;margin-bottom:6px;
+            display:flex;align-items:center;justify-content:center;gap:14px;
+        }
+        .pb-badge{
+            text-align:center;margin-bottom:14px;font-size:12px;
+            color:var(--yellow);letter-spacing:2px;
+            display:flex;align-items:center;justify-content:center;gap:6px;
+        }
+        .rank-pill{
+            display:inline-flex;align-items:center;gap:8px;
+            padding:7px 16px;border-radius:20px;margin-bottom:16px;
+            font-size:11px;font-weight:700;letter-spacing:2px;
+            border:1px solid rgba(241,196,15,0.4);color:var(--yellow);
+            background:rgba(241,196,15,0.06);
+        }
+        .result-grid{
+            display:grid;grid-template-columns:repeat(4,1fr);
+            gap:2px;background:var(--border);border-radius:12px;
+            overflow:hidden;margin-bottom:16px;
+        }
+        .result-cell{background:var(--surface2);padding:20px 10px;text-align:center;}
+        .result-label{
+            font-size:9px;letter-spacing:2.5px;text-transform:uppercase;
+            color:var(--muted);margin-bottom:8px;
+            display:flex;align-items:center;justify-content:center;gap:4px;
+        }
+        .result-value{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:2px;line-height:1;}
+        .result-value.green {color:var(--green); text-shadow:0 0 16px rgba(57,211,83,0.3);}
+        .result-value.yellow{color:var(--yellow);text-shadow:0 0 16px rgba(241,196,15,0.3);}
+        .result-value.cyan  {color:var(--accent);text-shadow:0 0 16px rgba(0,212,255,0.3);}
+        .result-value.orange{color:var(--orange);}
+
+        /* SPARKLINE */
+        .history-bar{display:flex;align-items:flex-end;gap:3px;height:32px;justify-content:center;margin-bottom:16px;}
+        .h-bar{width:8px;border-radius:2px 2px 0 0;background:var(--border);transition:height 0.3s;}
+        .h-bar.current{background:var(--accent);}
+
+        /* LEADERBOARD */
+        .lb-title{
+            font-family:'Bebas Neue',sans-serif;font-size:40px;
+            letter-spacing:4px;color:var(--yellow);text-align:center;margin-bottom:20px;
+            display:flex;align-items:center;justify-content:center;gap:14px;
+        }
+        .lb-list{max-height:340px;overflow-y:auto;margin-bottom:20px;padding-right:4px;}
+        .lb-list::-webkit-scrollbar{width:4px;}
+        .lb-list::-webkit-scrollbar-track{background:var(--surface2);border-radius:4px;}
+        .lb-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+        .lb-row{
+            display:flex;align-items:center;justify-content:space-between;
+            padding:12px 14px;border-radius:10px;border:1px solid var(--border);
+            background:var(--surface2);margin-bottom:7px;transition:all 0.2s;
+        }
+        .lb-row:hover{border-color:var(--muted);}
+        .lb-row.me{border-color:rgba(0,212,255,0.4);background:rgba(0,212,255,0.04);}
+        .lb-left{display:flex;align-items:center;gap:12px;}
+        .lb-rank{font-size:18px;width:30px;text-align:center;}
+        .lb-name{font-weight:700;font-size:13px;}
+        .lb-name.me{color:var(--accent);}
+        .lb-score{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--green);}
+
+        @media(max-width:620px){
+            .logo-title{font-size:48px;}
+            .word-display{font-size:48px;letter-spacing:6px;}
+            .settings-grid{grid-template-columns:1fr 1fr;}
+            .result-grid{grid-template-columns:repeat(2,1fr);}
+            .hud{grid-template-columns:1fr auto 1fr;}
+            .hud-wpm{display:none;}
+            .card{padding:24px;}
+        }
     </style>
 </head>
-<body class="bg-slate-950 text-white font-mono flex items-center justify-center min-h-screen p-4 selection:bg-cyan-900">
+<body>
+<div class="container">
 
-    <div class="max-w-3xl w-full">
-        <!-- 1. หน้าจอเริ่มเกม -->
-        <div id="start-screen" class="bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center shadow-[0_0_50px_rgba(0,0,0,0.5)] relative">
-            <button onclick="logout()" class="absolute top-6 right-6 text-slate-500 hover:text-red-400 text-sm flex items-center gap-1 transition-colors">
-                🚪 ออกจากระบบ
-            </button>
-            <div class="text-6xl mb-6 text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">⌨️</div>
-            <h1 class="text-4xl md:text-6xl font-black mb-2 tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                TYPING QUEST
-            </h1>
-            <p class="text-xl text-emerald-400 mb-6 font-bold">ยินดีต้อนรับ, <span id="player-name">...</span>!</p>
-            
-            <!-- ตั้งค่าก่อนเล่น -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <!-- เลือกระยะเวลา -->
-                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800">
-                    <p class="text-slate-400 mb-3 text-sm uppercase tracking-widest">เลือกระยะเวลา</p>
-                    <div class="flex justify-center gap-3">
-                        <button onclick="selectTime(15)" id="btn-time-15" class="px-4 py-2 text-sm rounded-full border-2 border-slate-700 text-slate-400 hover:border-cyan-500 hover:text-cyan-400 transition-all font-bold">15s</button>
-                        <button onclick="selectTime(30)" id="btn-time-30" class="px-4 py-2 text-sm rounded-full border-2 border-slate-700 text-slate-400 hover:border-cyan-500 hover:text-cyan-400 transition-all font-bold">30s</button>
-                        <button onclick="selectTime(60)" id="btn-time-60" class="px-4 py-2 text-sm rounded-full border-2 border-cyan-500 text-cyan-400 bg-cyan-500/10 transition-all font-bold">60s</button>
-                    </div>
-                </div>
-
-                <!-- เลือกระดับความยาก -->
-                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800">
-                    <p class="text-slate-400 mb-3 text-sm uppercase tracking-widest">ระดับความยาก</p>
-                    <div class="flex justify-center gap-3">
-                        <button onclick="selectDifficulty('easy')" id="btn-diff-easy" class="px-4 py-2 text-sm rounded-full border-2 border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-all font-bold">ง่าย</button>
-                        <button onclick="selectDifficulty('medium')" id="btn-diff-medium" class="px-4 py-2 text-sm rounded-full border-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 transition-all font-bold">ปานกลาง</button>
-                        <button onclick="selectDifficulty('hard')" id="btn-diff-hard" class="px-4 py-2 text-sm rounded-full border-2 border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-all font-bold">ยาก</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex justify-center gap-4 mt-4">
-                <button onclick="startGame()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 px-8 py-4 rounded-full font-bold text-xl transition-all hover:scale-105 shadow-[0_0_20px_rgba(34,211,238,0.4)] flex items-center gap-2">▶ เริ่มเกม</button>
-                <button onclick="openLeaderboard()" class="bg-yellow-500 hover:bg-yellow-400 text-slate-950 px-6 py-4 rounded-full font-bold text-lg transition-all hover:scale-105 shadow-[0_0_20px_rgba(234,179,8,0.3)] flex items-center gap-2">🏆 จัดอันดับ</button>
-            </div>
-            
-            <div id="high-score-display" class="mt-8 text-yellow-500 font-bold hidden">🏆 คะแนนสูงสุด: <span id="high-score-val">0</span></div>
-        </div>
-
-        <!-- 2. หน้าจอขณะเล่น -->
-        <div id="playing-screen" class="hidden space-y-6">
-            <div class="flex items-center justify-between bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-lg">
-                <div class="text-2xl font-bold text-cyan-400 w-1/3 flex items-center gap-2">
-                    <span id="timer-icon">⏱️</span> <span id="timer-text">00:60</span>
-                </div>
-                <div class="w-1/3 text-center">
-                    <span id="combo-badge" class="px-3 py-1 rounded-full text-slate-500 font-bold transition-all">⚡ x<span id="combo-text">1</span> COMBO</span>
-                </div>
-                <div class="text-right w-1/3 text-3xl font-black text-green-400 flex flex-col items-end justify-center">
-                    <div><span id="score-text">0</span></div>
-                    <div class="text-xs text-emerald-400 font-normal uppercase tracking-widest mt-1">+<span id="base-score-display">15</span>/คำ</div>
-                </div>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center shadow-2xl relative overflow-hidden">
-                <div id="time-bar" class="absolute top-0 left-0 h-1 bg-cyan-500 transition-all duration-1000 ease-linear" style="width: 100%"></div>
-                <div id="word-loading" class="hidden text-slate-500 text-lg mb-12 animate-pulse">กำลังโหลดคำ...</div>
-                <div id="word-display" class="text-5xl md:text-6xl font-bold tracking-widest mb-12 select-none"></div>
-                <input id="type-input" type="text" autocomplete="off" spellcheck="false" class="w-full bg-slate-950 border-2 border-slate-700 focus:border-cyan-500 text-center text-2xl py-4 rounded-xl text-white outline-none transition-colors" placeholder="พิมพ์ที่นี่..." />
-                
-                <!-- สถานะ Live Stats เล็กๆ ด้านล่าง -->
-                <div class="flex justify-between items-center mt-6 text-xs text-slate-500">
-                    <div id="api-status">🌐 Datamuse API</div>
-                    <div>พิมพ์ถูก: <span id="live-correct" class="text-green-400">0</span> | พิมพ์ผิด: <span id="live-mistakes" class="text-red-400">0</span></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 3. หน้าจอจบเกม -->
-        <div id="end-screen" class="hidden bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center shadow-2xl">
-            <h2 class="text-3xl font-bold text-red-400 mb-6">หมดเวลา!</h2>
-            
-            <div class="grid grid-cols-2 gap-6 mb-10 bg-slate-950 p-6 rounded-2xl border border-slate-800">
-                <div class="text-center">
-                    <div class="text-slate-400 uppercase tracking-widest text-sm mb-2">SCORE</div>
-                    <div id="final-score" class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">0</div>
-                </div>
-                <div class="text-center border-l border-slate-800">
-                    <div class="text-slate-400 uppercase tracking-widest text-sm mb-2">ACCURACY</div>
-                    <div id="final-accuracy" class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">0%</div>
-                </div>
-            </div>
-
-            <button onclick="window.location.reload()" class="bg-slate-100 hover:bg-white text-slate-900 px-8 py-4 rounded-full font-bold text-xl transition-all hover:scale-105 shadow-lg">
-                🏠 กลับหน้าแรก
-            </button>
-        </div>
-
-        <!-- 4. หน้าจอจัดอันดับ (Leaderboard) -->
-        <div id="leaderboard-screen" class="hidden bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center shadow-2xl relative">
-            <h2 class="text-3xl font-black text-yellow-400 mb-6 flex items-center justify-center gap-2">
-                🏆 Top 10 Leaderboard
-            </h2>
-            <div id="leaderboard-list" class="space-y-3 mb-8 text-left h-64 overflow-y-auto pr-2 custom-scrollbar">
-                <!-- ข้อมูลจัดอันดับ -->
-            </div>
-            <button onclick="showScreen('start-screen')" class="bg-slate-100 hover:bg-white text-slate-900 px-8 py-3 rounded-full font-bold transition-all hover:scale-105">
-                🏠 กลับหน้าแรก
-            </button>
-        </div>
-
+    <!-- COUNTDOWN OVERLAY -->
+    <div id="countdown-overlay" class="hidden">
+        <div class="countdown-num" id="countdown-num">3</div>
+        <div class="countdown-label">GET READY</div>
     </div>
 
-    <script>
-        // 1. ระบบตรวจสอบสิทธิ์
-        const currentUser = localStorage.getItem('username');
-        if (!currentUser) {
-            window.location.href = '/login'; 
+    <!-- ══════════════════════════════
+         1. START SCREEN
+    ══════════════════════════════ -->
+    <div id="start-screen" class="card">
+        <div class="scanline"></div>
+
+        <!-- Top bar -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+            <div style="display:flex;gap:8px;align-items:center">
+                <button class="sound-toggle on" id="sound-btn" onclick="toggleSound()">
+                    <i data-lucide="volume-2" width="13" height="13" id="sound-icon"></i>
+                    <span id="sound-label">SFX ON</span>
+                </button>
+                <button class="daily-badge" id="daily-btn" onclick="startDailyChallenge()">
+                    <i data-lucide="calendar-check" width="13" height="13"></i>
+                    DAILY
+                </button>
+            </div>
+            <button onclick="logout()" class="icon-btn danger">
+                <i data-lucide="log-out" width="13" height="13"></i> Sign Out
+            </button>
+        </div>
+
+        <!-- Logo -->
+        <div class="logo-area">
+            <div class="logo-icon">
+                <i data-lucide="keyboard" width="46" height="46" stroke="var(--accent)"></i>
+            </div>
+            <div class="logo-title">TYPING QUEST</div>
+            <div class="welcome-text">Welcome back, <span id="player-name">...</span></div>
+        </div>
+
+        <!-- Settings -->
+        <div class="settings-grid">
+            <div class="setting-block">
+                <div class="setting-label"><i data-lucide="timer" width="11" height="11"></i> Duration</div>
+                <div class="btn-group">
+                    <button onclick="selectTime(15)" id="btn-time-15" class="pill-btn">15s</button>
+                    <button onclick="selectTime(30)" id="btn-time-30" class="pill-btn">30s</button>
+                    <button onclick="selectTime(60)" id="btn-time-60" class="pill-btn active-cyan">60s</button>
+                </div>
+            </div>
+            <div class="setting-block">
+                <div class="setting-label"><i data-lucide="gauge" width="11" height="11"></i> Difficulty</div>
+                <div class="btn-group">
+                    <button onclick="selectDifficulty('easy')"   id="btn-diff-easy"   class="pill-btn">Easy</button>
+                    <button onclick="selectDifficulty('medium')" id="btn-diff-medium" class="pill-btn active-green">Med</button>
+                    <button onclick="selectDifficulty('hard')"   id="btn-diff-hard"   class="pill-btn">Hard</button>
+                </div>
+            </div>
+            <div class="setting-block">
+                <div class="setting-label"><i data-lucide="swords" width="11" height="11"></i> Mode</div>
+                <div class="btn-group" style="gap:5px">
+                    <button onclick="selectMode('classic')" id="btn-mode-classic" class="mode-btn active" title="Classic">
+                        <i data-lucide="play-circle" width="14" height="14"></i>
+                        <span>CLASSIC</span>
+                    </button>
+                    <button onclick="selectMode('sudden')" id="btn-mode-sudden" class="mode-btn" title="Sudden Death — 3 lives">
+                        <i data-lucide="skull" width="14" height="14"></i>
+                        <span>SUDDEN</span>
+                    </button>
+                    <button onclick="selectMode('zen')" id="btn-mode-zen" class="mode-btn" title="Zen — no timer, +5s per word">
+                        <i data-lucide="infinity" width="14" height="14"></i>
+                        <span>ZEN</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme row -->
+        <div class="theme-row">
+            <div class="setting-label" style="margin:0"><i data-lucide="palette" width="11" height="11"></i> Theme</div>
+            <div class="theme-dots">
+                <div class="theme-dot active" data-t="default" onclick="setTheme('default')" title="Cyber"></div>
+                <div class="theme-dot" data-t="amber"   onclick="setTheme('amber')"   title="Amber"></div>
+                <div class="theme-dot" data-t="rose"    onclick="setTheme('rose')"    title="Rose"></div>
+                <div class="theme-dot" data-t="emerald" onclick="setTheme('emerald')" title="Emerald"></div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="action-row">
+            <button onclick="beginCountdown()" class="btn-primary">
+                <i data-lucide="play" width="16" height="16"></i> Play
+            </button>
+            <button onclick="openLeaderboard()" class="btn-secondary">
+                <i data-lucide="trophy" width="15" height="15"></i> Leaderboard
+            </button>
+        </div>
+
+        <div id="high-score-display" class="high-score-badge">
+            <i data-lucide="medal" width="12" height="12" style="vertical-align:middle"></i>
+            Best: <strong id="high-score-val" style="color:var(--yellow)">—</strong>
+            &nbsp;·&nbsp; Games: <strong id="games-played-val" style="color:var(--muted)">0</strong>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════
+         2. PLAYING SCREEN
+    ══════════════════════════════ -->
+    <div id="playing-screen" class="hidden" style="display:none">
+        <div class="hud">
+            <div class="hud-timer" id="hud-timer">
+                <i data-lucide="timer" width="20" height="20"></i>
+                <span id="timer-text">00:60</span>
+            </div>
+            <div class="hud-combo">
+                <span class="combo-badge" id="combo-badge">
+                    <i data-lucide="zap" width="11" height="11"></i>
+                    x<span id="combo-text">1</span> COMBO
+                </span>
+            </div>
+            <div class="hud-wpm">
+                <div class="wpm-value" id="wpm-text">0</div>
+                <div class="wpm-label">WPM</div>
+            </div>
+            <div class="hud-score">
+                <div class="score-value" id="score-text">0</div>
+                <div class="score-meta">+<span id="base-score-display">15</span> pts/word</div>
+            </div>
+        </div>
+
+        <div class="game-card">
+            <div class="time-bar-track">
+                <div class="time-bar-fill" id="time-bar" style="width:100%"></div>
+            </div>
+            <div class="lives-bar hidden" id="lives-bar"></div>
+            <div class="word-loading hidden" id="word-loading">LOADING...</div>
+            <div class="word-display" id="word-display"></div>
+            <input id="type-input" type="text" autocomplete="off" spellcheck="false"
+                   class="type-input" placeholder="START TYPING..."/>
+            <div class="live-stats">
+                <span id="api-status" style="display:inline-flex;align-items:center;gap:4px">
+                    <i data-lucide="globe" width="10" height="10"></i> Datamuse API
+                </span>
+                <span style="display:inline-flex;align-items:center;gap:5px">
+                    <i data-lucide="check-circle" width="10" height="10" style="color:var(--green)"></i>
+                    <span class="correct" id="live-correct">0</span>
+                    <span style="color:var(--border)">|</span>
+                    <i data-lucide="x-circle" width="10" height="10" style="color:var(--red)"></i>
+                    <span class="wrong" id="live-mistakes">0</span>
+                    <span style="color:var(--border)">|</span>
+                    <i data-lucide="hash" width="10" height="10" style="color:var(--muted)"></i>
+                    <span id="live-words" style="color:var(--muted)">0</span> words
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════
+         3. END SCREEN
+    ══════════════════════════════ -->
+    <div id="end-screen" class="card hidden">
+        <div class="scanline"></div>
+        <div class="result-title">
+            <i data-lucide="clock" width="36" height="36" stroke="var(--red)"></i>
+            <span id="end-title-text">TIME'S UP!</span>
+        </div>
+        <div class="pb-badge hidden" id="pb-banner">
+            <i data-lucide="sparkles" width="14" height="14"></i> NEW PERSONAL BEST!
+        </div>
+        <div style="text-align:center;margin-bottom:14px">
+            <span class="rank-pill hidden" id="rank-pill">
+                <i data-lucide="trophy" width="13" height="13"></i>
+                <span id="rank-text">Rank #?</span> on leaderboard
+            </span>
+        </div>
+        <div class="result-grid">
+            <div class="result-cell">
+                <div class="result-label"><i data-lucide="star" width="9" height="9"></i> Score</div>
+                <div class="result-value green" id="final-score">0</div>
+            </div>
+            <div class="result-cell">
+                <div class="result-label"><i data-lucide="activity" width="9" height="9"></i> WPM</div>
+                <div class="result-value cyan" id="final-wpm">0</div>
+            </div>
+            <div class="result-cell">
+                <div class="result-label"><i data-lucide="target" width="9" height="9"></i> Accuracy</div>
+                <div class="result-value yellow" id="final-accuracy">0%</div>
+            </div>
+            <div class="result-cell">
+                <div class="result-label"><i data-lucide="hash" width="9" height="9"></i> Words</div>
+                <div class="result-value orange" id="final-words">0</div>
+            </div>
+        </div>
+        <div style="text-align:center;margin-bottom:6px;font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase">
+            Recent Sessions
+        </div>
+        <div class="history-bar" id="history-bar"></div>
+        <div class="action-row" style="justify-content:center">
+            <button onclick="beginCountdown()" class="btn-primary">
+                <i data-lucide="rotate-ccw" width="15" height="15"></i> Play Again
+            </button>
+            <button onclick="showScreen('start-screen')" class="btn-ghost">
+                <i data-lucide="home" width="15" height="15"></i> Home
+            </button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════
+         4. LEADERBOARD SCREEN
+    ══════════════════════════════ -->
+    <div id="leaderboard-screen" class="card hidden">
+        <div class="scanline"></div>
+        <div class="lb-title">
+            <i data-lucide="trophy" width="32" height="32" stroke="var(--yellow)"></i>
+            TOP 10
+        </div>
+        <div class="lb-list" id="leaderboard-list"></div>
+        <div class="action-row" style="justify-content:center">
+            <button onclick="showScreen('start-screen')" class="btn-ghost">
+                <i data-lucide="arrow-left" width="15" height="15"></i> Back to Home
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// ═══════════════════ AUTH ═══════════════════
+const currentUser = localStorage.getItem('username');
+if (!currentUser) { window.location.href = '/login'; }
+function logout() { localStorage.removeItem('username'); window.location.href = '/login'; }
+
+// ═══════════════════ SOUND ═══════════════════
+let audioCtx = null;
+let soundEnabled = JSON.parse(localStorage.getItem('soundEnabled') ?? 'true');
+
+function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+}
+function playTone(freq, type, dur, vol=0.1) {
+    if (!soundEnabled) return;
+    try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = type; osc.frequency.value = freq;
+        gain.gain.setValueAtTime(vol, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+        osc.start(); osc.stop(ctx.currentTime + dur);
+    } catch(e) {}
+}
+const SFX = {
+    correct : () => playTone(660,'sine',0.07,0.08),
+    wrong   : () => playTone(180,'sawtooth',0.1,0.12),
+    combo   : () => { playTone(880,'sine',0.1,0.1); setTimeout(()=>playTone(1100,'sine',0.1,0.08),80); },
+    wordDone: () => playTone(520,'triangle',0.12,0.1),
+    start   : () => [300,500,700].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.18,0.1),i*120)),
+    end     : () => [500,400,300].forEach((f,i)=>setTimeout(()=>playTone(f,'triangle',0.22,0.12),i*130)),
+    pb      : () => [600,800,1000,1200].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.18,0.1),i*90)),
+};
+function toggleSound() {
+    soundEnabled = !soundEnabled;
+    localStorage.setItem('soundEnabled', soundEnabled);
+    updateSoundUI();
+}
+function updateSoundUI() {
+    const btn = document.getElementById('sound-btn');
+    const icon = document.getElementById('sound-icon');
+    btn.className = 'sound-toggle' + (soundEnabled ? ' on' : '');
+    icon.setAttribute('data-lucide', soundEnabled ? 'volume-2' : 'volume-x');
+    document.getElementById('sound-label').innerText = soundEnabled ? 'SFX ON' : 'SFX OFF';
+    lucide.createIcons();
+}
+
+// ═══════════════════ THEME ═══════════════════
+function setTheme(t) {
+    document.documentElement.setAttribute('data-theme', t === 'default' ? '' : t);
+    localStorage.setItem('theme', t);
+    document.querySelectorAll('.theme-dot').forEach(d => d.classList.toggle('active', d.dataset.t === t));
+}
+
+// ═══════════════════ CONFIG ═══════════════════
+const DIFFICULTY_SETTINGS = {
+    easy:   { minLen:3,  maxLen:5,  baseScore:10 },
+    medium: { minLen:6,  maxLen:8,  baseScore:15 },
+    hard:   { minLen:9,  maxLen:20, baseScore:20 },
+};
+const FALLBACK_WORDS = {
+    easy: ['cat','dog','car','sun','box','tree','home','bird','fish','food','good','time','water','love','door',
+           'room','game','play','happy','milk','apple','star','moon','shoe','hat','book','desk','pen','bus','boy',
+           'girl','city','road','sky','rain','snow','wind','fire','light','dark','day','night','smile','house',
+           'train','plant','chair','table','phone','clock','watch','shirt','pants','bread','meat','egg','cake',
+           'sugar','salt','ice','cold','hot','warm','cool','fast','slow','big','small','old','new','man','hand'],
+    medium: ['server','system','cloud','laptop','python','react','router','domain','network','branch',
+             'commit','widget','module','object','method','filter','render','effect','state','deploy',
+             'button','design','layout','output','cursor','syntax','format','import','export','pixel'],
+    hard:   ['javascript','developer','frontend','database','algorithm','asynchronous','framework','deployment',
+             'optimization','configuration','architecture','integration','environment','middleware','authentication',
+             'refactoring','polymorphism','encapsulation','infrastructure','documentation'],
+};
+const DAILY_POOL = ['planet','rocket','binary','syntax','anchor','copper','fossil','jungle','marble','nectar',
+    'oracle','puzzle','quartz','riddle','silver','tunnel','velvet','walrus','xenon','yogurt'];
+
+function getDailyWord() {
+    return DAILY_POOL[Math.floor(Date.now()/86400000) % DAILY_POOL.length];
+}
+
+let currentDifficulty = 'medium';
+let gameDuration = 60;
+let gameMode = 'classic';
+let isDailyChallenge = false;
+let score=0, timeLeft=60, combo=1, currentWord='';
+let timerInterval=null, isFetching=false;
+let totalKeystrokes=0, mistakes=0, previousInputLength=0;
+let wordsCompleted=0, gameStartTime=0, livesLeft=3, zenActive=false;
+
+// ═══════════════════ SELECTORS ═══════════════════
+function selectTime(s) {
+    gameDuration = s;
+    [15,30,60].forEach(t => {
+        document.getElementById(`btn-time-${t}`).className = 'pill-btn' + (t===s?' active-cyan':'');
+    });
+}
+function selectDifficulty(d) {
+    currentDifficulty = d;
+    ['easy','medium','hard'].forEach(x => {
+        document.getElementById(`btn-diff-${x}`).className = 'pill-btn' + (x===d?' active-green':'');
+    });
+}
+function selectMode(m) {
+    gameMode = m;
+    const cls = {classic:'active', sudden:'active-red', zen:'active-yellow'};
+    ['classic','sudden','zen'].forEach(x => {
+        document.getElementById(`btn-mode-${x}`).className = 'mode-btn' + (x===m?' '+cls[m]:'');
+    });
+    const zenMode = (m === 'zen');
+    [15,30,60].forEach(t => {
+        const btn = document.getElementById(`btn-time-${t}`);
+        btn.disabled = zenMode;
+    });
+}
+
+// ═══════════════════ SCREENS ═══════════════════
+function showScreen(id) {
+    ['start-screen','playing-screen','end-screen','leaderboard-screen'].forEach(s => {
+        const el = document.getElementById(s);
+        el.classList.toggle('hidden', s!==id);
+        el.style.display = (s!==id) ? 'none' : '';
+    });
+    if (id === 'start-screen') lucide.createIcons();
+}
+
+// ═══════════════════ DAILY ═══════════════════
+function startDailyChallenge() {
+    const key = `daily_${currentUser}_${new Date().toDateString()}`;
+    if (localStorage.getItem(key)) {
+        alert("You already completed today's Daily Challenge! Come back tomorrow. 🌅");
+        return;
+    }
+    isDailyChallenge = true;
+    selectTime(60); selectDifficulty('medium'); selectMode('classic');
+    beginCountdown();
+}
+
+// ═══════════════════ COUNTDOWN ═══════════════════
+function beginCountdown() {
+    const overlay = document.getElementById('countdown-overlay');
+    const numEl   = document.getElementById('countdown-num');
+    overlay.classList.remove('hidden');
+    let count = 3;
+    numEl.innerText = count;
+    numEl.style.color = 'var(--accent)';
+    SFX.start();
+
+    const tick = setInterval(() => {
+        count--;
+        if (count === 0) {
+            numEl.innerText = 'GO!';
+            numEl.style.color = 'var(--green)';
+            clearInterval(tick);
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                numEl.style.color = 'var(--accent)';
+                startGame();
+            }, 700);
         } else {
-            document.addEventListener('DOMContentLoaded', () => {
-                document.getElementById('player-name').innerText = currentUser;
-                const savedScore = localStorage.getItem(`highScore_${currentUser}`);
-                if (savedScore) {
-                    document.getElementById('high-score-display').classList.remove('hidden');
-                    document.getElementById('high-score-val').innerText = savedScore;
-                }
-            });
+            numEl.innerText = count;
+            numEl.style.animation = 'none';
+            numEl.offsetHeight;
+            numEl.style.animation = 'countPop 0.9s ease-out';
+        }
+    }, 900);
+}
+
+// ═══════════════════ GAME START ═══════════════════
+function startGame() {
+    score=0; timeLeft=gameDuration; combo=1;
+    totalKeystrokes=0; mistakes=0; previousInputLength=0;
+    wordsCompleted=0; livesLeft=3; zenActive=(gameMode==='zen');
+    gameStartTime=Date.now();
+
+    document.getElementById('score-text').innerText = 0;
+    document.getElementById('wpm-text').innerText = 0;
+    document.getElementById('timer-text').innerText = fmt(timeLeft);
+    document.getElementById('time-bar').style.width = '100%';
+    document.getElementById('time-bar').style.display = '';
+    document.getElementById('base-score-display').innerText = DIFFICULTY_SETTINGS[currentDifficulty].baseScore;
+    document.getElementById('hud-timer').className = 'hud-timer';
+    document.getElementById('hud-timer').style.opacity = zenActive ? '0.3' : '1';
+    document.getElementById('live-words').innerText = 0;
+
+    // Lives (sudden death)
+    const livesBar = document.getElementById('lives-bar');
+    if (gameMode === 'sudden') {
+        livesBar.classList.remove('hidden');
+        livesBar.innerHTML = Array.from({length:3},(_,i)=>`<div class="life-dot" id="life-${i}"></div>`).join('');
+    } else {
+        livesBar.classList.add('hidden');
+    }
+    if (zenActive) document.getElementById('time-bar').style.display = 'none';
+
+    updateLiveStats();
+    generateWord();
+    showScreen('playing-screen');
+    const inp = document.getElementById('type-input');
+    inp.value=''; inp.focus(); inp.className='type-input';
+    inp.style.borderColor='';
+
+    clearInterval(timerInterval);
+    if (!zenActive) timerInterval = setInterval(updateTimer, 1000);
+}
+
+function fmt(s) { return `00:${s.toString().padStart(2,'0')}`; }
+
+// ═══════════════════ TIMER ═══════════════════
+function updateTimer() {
+    timeLeft--;
+    document.getElementById('timer-text').innerText = fmt(timeLeft);
+    document.getElementById('time-bar').style.width = `${(timeLeft/gameDuration)*100}%`;
+    document.getElementById('hud-timer').className = 'hud-timer' + (timeLeft<=10?' danger':'');
+    if (timeLeft<=0) endGame();
+}
+
+// ═══════════════════ WPM ═══════════════════
+function calcWPM() {
+    const mins = (Date.now()-gameStartTime)/60000;
+    return mins < 0.01 ? 0 : Math.round(wordsCompleted/mins);
+}
+
+// ═══════════════════ WORD GEN ═══════════════════
+async function generateWord() {
+    if (isFetching) return;
+    isFetching = true;
+    document.getElementById('word-display').classList.add('hidden');
+    document.getElementById('word-loading').classList.remove('hidden');
+
+    const conf = DIFFICULTY_SETTINGS[currentDifficulty];
+
+    if (isDailyChallenge && wordsCompleted === 0) {
+        currentWord = getDailyWord();
+        setApiStatus('orange','calendar','Daily Word');
+        finishGenerate(); return;
+    }
+    if (currentDifficulty === 'easy') {
+        const lst = FALLBACK_WORDS.easy;
+        currentWord = lst[Math.floor(Math.random()*lst.length)];
+        setApiStatus('green','home','Daily Words');
+        finishGenerate(); return;
+    }
+    try {
+        const letter = String.fromCharCode(97+Math.floor(Math.random()*26));
+        const res = await fetch(`https://api.datamuse.com/words?sp=${letter}*&max=100`);
+        const data = await res.json();
+        const valid = data.filter(w => /^[a-z]+$/.test(w.word) && w.word.length>=conf.minLen && w.word.length<=conf.maxLen);
+        if (valid.length) { currentWord = valid[Math.floor(Math.random()*valid.length)].word; }
+        else throw new Error();
+        setApiStatus('muted','globe','Datamuse API ✓');
+    } catch {
+        const lst = FALLBACK_WORDS[currentDifficulty];
+        currentWord = lst[Math.floor(Math.random()*lst.length)];
+        setApiStatus('red','wifi-off','Offline Mode');
+    }
+    finishGenerate();
+}
+function setApiStatus(c,icon,txt) {
+    const el = document.getElementById('api-status');
+    el.innerHTML = `<i data-lucide="${icon}" width="10" height="10"></i> ${txt}`;
+    el.style.color = `var(--${c})`;
+    lucide.createIcons();
+}
+function finishGenerate() {
+    isFetching=false; previousInputLength=0;
+    document.getElementById('word-loading').classList.add('hidden');
+    document.getElementById('word-display').classList.remove('hidden');
+    renderWord();
+}
+function renderWord() {
+    const val = document.getElementById('type-input').value.toLowerCase();
+    document.getElementById('word-display').innerHTML = currentWord.split('').map((c,i)=>{
+        let cls='char-default';
+        if(i<val.length) cls = val[i]===c ? 'char-correct':'char-wrong';
+        return `<span class="${cls}">${c}</span>`;
+    }).join('');
+}
+
+// ═══════════════════ LIVE STATS ═══════════════════
+function updateLiveStats() {
+    document.getElementById('live-correct').innerText = totalKeystrokes-mistakes;
+    document.getElementById('live-mistakes').innerText = mistakes;
+    document.getElementById('live-words').innerText = wordsCompleted;
+    document.getElementById('wpm-text').innerText = calcWPM();
+}
+
+// ═══════════════════ INPUT ═══════════════════
+document.getElementById('type-input').addEventListener('input', e => {
+    const val = e.target.value.toLowerCase();
+    e.target.value = val;
+
+    if (val.length > previousInputLength) {
+        totalKeystrokes++;
+        const ok = val === currentWord.substring(0, val.length);
+        if (!ok) {
+            mistakes++;
+            SFX.wrong();
+            if (gameMode==='sudden') loseLife();
+        } else {
+            SFX.correct();
+        }
+        updateLiveStats();
+    }
+    previousInputLength = val.length;
+
+    const isTypo = val !== currentWord.substring(0, val.length);
+    if (isTypo) { combo=1; e.target.style.borderColor='var(--red)'; }
+    else         { e.target.style.borderColor=''; }
+
+    document.getElementById('combo-text').innerText = combo;
+    document.getElementById('combo-badge').className = 'combo-badge' + (combo>1?' active':'');
+
+    if (val === currentWord) {
+        const pts = DIFFICULTY_SETTINGS[currentDifficulty].baseScore * combo;
+        score += pts; wordsCompleted++;
+        const prevCombo = combo;
+        combo = Math.min(combo+1, 5);
+        document.getElementById('score-text').innerText = score;
+        SFX.wordDone();
+        if (prevCombo >= 3) SFX.combo();
+
+        // Zen: +5s per word
+        if (zenActive) {
+            timeLeft = Math.min((timeLeft||30)+5, 120);
+            document.getElementById('timer-text').innerText = fmt(timeLeft);
         }
 
-        function logout() { localStorage.removeItem('username'); window.location.href = '/login'; }
+        updateLiveStats();
+        e.target.value=''; e.target.style.borderColor=''; e.target.className='type-input';
+        generateWord();
+    } else {
+        renderWord();
+    }
+});
 
-        // 2. ตั้งค่าระดับความยากและตัวแปรเกม
-        const DIFFICULTY_SETTINGS = {
-            easy: { minLen: 3, maxLen: 5, baseScore: 10 },
-            medium: { minLen: 6, maxLen: 8, baseScore: 15 },
-            hard: { minLen: 9, maxLen: 20, baseScore: 20 }
-        };
+// ═══════════════════ SUDDEN DEATH ═══════════════════
+function loseLife() {
+    if (livesLeft<=0) return;
+    livesLeft--;
+    const dot = document.getElementById(`life-${livesLeft}`);
+    if (dot) dot.classList.add('lost');
+    const inp = document.getElementById('type-input');
+    inp.classList.add('shake');
+    setTimeout(()=>inp.classList.remove('shake'),300);
+    if (livesLeft===0) setTimeout(()=>endGame(true),400);
+}
 
-        const FALLBACK_WORDS = {
-            // เพิ่มคำง่ายๆ ในชีวิตประจำวัน 3-5 ตัวอักษร
-            easy: [
-                'cat', 'dog', 'car', 'sun', 'box', 'tree', 'home', 'bird', 'fish', 'food', 
-                'good', 'time', 'water', 'love', 'door', 'room', 'game', 'play', 'happy', 'milk', 
-                'apple', 'star', 'moon', 'shoe', 'hat', 'book', 'desk', 'pen', 'bus', 'boy', 
-                'girl', 'city', 'road', 'sky', 'rain', 'snow', 'wind', 'fire', 'light', 'dark', 
-                'day', 'night', 'smile', 'house', 'train', 'plant', 'chair', 'table', 'phone', 'clock', 
-                'watch', 'shirt', 'pants', 'shoes', 'socks', 'bread', 'meat', 'egg', 'cake', 'sweet', 
-                'sugar', 'salt', 'ice', 'cold', 'hot', 'warm', 'cool', 'fast', 'slow', 'high', 
-                'low', 'big', 'small', 'long', 'short', 'old', 'new', 'young', 'man', 'woman', 
-                'child', 'baby', 'hand', 'foot', 'head', 'eye', 'ear', 'nose', 'mouth', 'hair', 
-                'face', 'neck', 'arm', 'leg', 'back', 'bone', 'skin', 'body'
-            ],
-            medium: ['server', 'system', 'cloud', 'laptop', 'mouse', 'python', 'react', 'router', 'domain'],
-            hard: ['javascript', 'developer', 'frontend', 'database', 'algorithm', 'asynchronous', 'framework', 'deployment']
-        };
-        
-        let currentDifficulty = 'medium';
-        let gameDuration = 60; 
-        
-        let score = 0;
-        let timeLeft = 60; 
-        let combo = 1;
-        let currentWord = '';
-        let timerInterval;
-        let isFetching = false;
+// ═══════════════════ END GAME ═══════════════════
+async function endGame(sudden=false) {
+    clearInterval(timerInterval);
 
-        let totalKeystrokes = 0;
-        let mistakes = 0;
-        let previousInputLength = 0;
+    const accuracy = totalKeystrokes>0
+        ? Math.max(0,Math.floor(((totalKeystrokes-mistakes)/totalKeystrokes)*100)) : 0;
+    const wpm = calcWPM();
 
-        function selectTime(seconds) {
-            gameDuration = seconds;
-            [15, 30, 60].forEach(t => {
-                const btn = document.getElementById(`btn-time-${t}`);
-                btn.className = (t === seconds) 
-                    ? "px-4 py-2 text-sm rounded-full border-2 border-cyan-500 text-cyan-400 bg-cyan-500/10 transition-all font-bold"
-                    : "px-4 py-2 text-sm rounded-full border-2 border-slate-700 text-slate-400 hover:border-cyan-500 hover:text-cyan-400 transition-all font-bold";
-            });
+    document.getElementById('final-score').innerText = score;
+    document.getElementById('final-accuracy').innerText = accuracy+'%';
+    document.getElementById('final-wpm').innerText = wpm;
+    document.getElementById('final-words').innerText = wordsCompleted;
+    document.getElementById('end-title-text').innerText = sudden ? 'GAME OVER!' : "TIME'S UP!";
+
+    // PB check
+    const highKey = `highScore_${currentUser}`;
+    const prevHigh = parseInt(localStorage.getItem(highKey)||'0');
+    const isPB = score > prevHigh;
+    if (isPB) {
+        localStorage.setItem(highKey, score);
+        document.getElementById('pb-banner').classList.remove('hidden');
+        document.getElementById('high-score-val').innerText = score;
+        SFX.pb();
+    } else {
+        document.getElementById('pb-banner').classList.add('hidden');
+        SFX.end();
+    }
+
+    // Games counter
+    const gKey = `gamesPlayed_${currentUser}`;
+    const played = parseInt(localStorage.getItem(gKey)||'0')+1;
+    localStorage.setItem(gKey, played);
+    document.getElementById('games-played-val').innerText = played;
+
+    // History sparkline
+    const hKey = `history_${currentUser}`;
+    const hist = JSON.parse(localStorage.getItem(hKey)||'[]');
+    hist.push(score); if(hist.length>10) hist.shift();
+    localStorage.setItem(hKey, JSON.stringify(hist));
+    renderHistoryBar(hist);
+
+    // Daily mark
+    if (isDailyChallenge) {
+        const dKey = `daily_${currentUser}_${new Date().toDateString()}`;
+        localStorage.setItem(dKey, '1');
+        document.getElementById('daily-btn').classList.add('done');
+        isDailyChallenge = false;
+    }
+
+    showScreen('end-screen');
+    lucide.createIcons();
+
+    // Save & rank
+    try {
+        await fetch('/api/save-score',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:currentUser,score})});
+        const lb = await (await fetch('/api/leaderboard')).json();
+        const rank = lb.findIndex(u=>u.username===currentUser)+1;
+        if (rank>0) {
+            document.getElementById('rank-text').innerText = `Rank #${rank}`;
+            document.getElementById('rank-pill').classList.remove('hidden');
+            lucide.createIcons();
         }
+    } catch { console.error('Failed to save score'); }
+}
 
-        function selectDifficulty(diff) {
-            currentDifficulty = diff;
-            ['easy', 'medium', 'hard'].forEach(d => {
-                const btn = document.getElementById(`btn-diff-${d}`);
-                btn.className = (d === diff)
-                    ? "px-4 py-2 text-sm rounded-full border-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 transition-all font-bold"
-                    : "px-4 py-2 text-sm rounded-full border-2 border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-all font-bold";
-            });
-        }
+// ═══════════════════ SPARKLINE ═══════════════════
+function renderHistoryBar(hist) {
+    const bar = document.getElementById('history-bar');
+    if (!hist.length) { bar.innerHTML=''; return; }
+    const max = Math.max(...hist,1);
+    bar.innerHTML = hist.map((v,i)=>{
+        const h = Math.max(4,Math.round((v/max)*32));
+        return `<div class="h-bar${i===hist.length-1?' current':''}" style="height:${h}px" title="Score: ${v}"></div>`;
+    }).join('');
+}
 
-        function showScreen(id) {
-            ['start-screen', 'playing-screen', 'end-screen', 'leaderboard-screen'].forEach(s => document.getElementById(s).classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        }
+// ═══════════════════ LEADERBOARD ═══════════════════
+async function openLeaderboard() {
+    showScreen('leaderboard-screen');
+    const listEl = document.getElementById('leaderboard-list');
+    listEl.innerHTML = `<div style="text-align:center;color:var(--muted);padding:40px;letter-spacing:2px;animation:pulse 1s infinite">LOADING...</div>`;
+    try {
+        const res = await fetch('/api/leaderboard');
+        if(!res.ok) throw new Error();
+        const data = await res.json();
+        if(!data.length) { listEl.innerHTML=`<div style="text-align:center;color:var(--muted);padding:40px">No scores yet. Be the first!</div>`; return; }
+        const medals=['🥇','🥈','🥉'];
+        listEl.innerHTML = data.map((u,i)=>{
+            const rank = i<3 ? medals[i] : `<span style="color:var(--muted)">${i+1}</span>`;
+            const isMe = u.username===currentUser;
+            return `<div class="lb-row${isMe?' me':''}">
+                <div class="lb-left">
+                    <span class="lb-rank">${rank}</span>
+                    <span class="lb-name${isMe?' me':''}">${u.username}${isMe?` <span style="font-size:9px;opacity:0.5">(you)</span>`:''}</span>
+                </div>
+                <span class="lb-score">${u.highScore}</span>
+            </div>`;
+        }).join('');
+    } catch {
+        listEl.innerHTML=`<div style="text-align:center;color:var(--red);padding:40px">Failed to load. Try again.</div>`;
+    }
+    lucide.createIcons();
+}
 
-        async function openLeaderboard() {
-            showScreen('leaderboard-screen');
-            const listEl = document.getElementById('leaderboard-list');
-            listEl.innerHTML = '<div class="text-center text-slate-400 mt-10 animate-pulse">กำลังโหลดข้อมูล...</div>';
+// ═══════════════════ INIT ═══════════════════
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('player-name').innerText = currentUser;
 
-            try {
-                const res = await fetch('/api/leaderboard');
-                if(!res.ok) throw new Error('Failed to fetch');
-                const data = await res.json();
+    const savedHigh = localStorage.getItem(`highScore_${currentUser}`);
+    document.getElementById('high-score-val').innerText = savedHigh || '—';
+    document.getElementById('games-played-val').innerText = localStorage.getItem(`gamesPlayed_${currentUser}`) || '0';
 
-                if(data.length === 0) {
-                    listEl.innerHTML = '<div class="text-center text-slate-500 mt-10">ยังไม่มีข้อมูลคะแนน</div>';
-                    return;
-                }
+    const savedTheme = localStorage.getItem('theme') || 'default';
+    setTheme(savedTheme);
+    updateSoundUI();
 
-                listEl.innerHTML = data.map((user, index) => {
-                    let medal = '';
-                    if(index === 0) medal = '🥇';
-                    else if(index === 1) medal = '🥈';
-                    else if(index === 2) medal = '🥉';
-                    else medal = `<span class="w-6 inline-block text-center text-slate-500">${index + 1}</span>`;
+    // Daily done today?
+    const dKey = `daily_${currentUser}_${new Date().toDateString()}`;
+    if (localStorage.getItem(dKey)) document.getElementById('daily-btn').classList.add('done');
 
-                    const isMe = user.username === currentUser ? 'bg-cyan-900/40 border-cyan-500/50' : 'bg-slate-800 border-slate-700';
+    // History sparkline on start screen if wanted
+    const hist = JSON.parse(localStorage.getItem(`history_${currentUser}`)||'[]');
+    renderHistoryBar(hist);
 
-                    return `
-                        <div class="flex justify-between items-center p-3 rounded-xl border ${isMe}">
-                            <div class="flex items-center gap-3">
-                                <span class="text-xl w-8 text-center">${medal}</span>
-                                <span class="font-bold ${user.username === currentUser ? 'text-cyan-400' : 'text-slate-200'}">${user.username}</span>
-                            </div>
-                            <div class="font-black text-green-400 text-xl">${user.highScore}</div>
-                        </div>
-                    `;
-                }).join('');
-
-            } catch(e) {
-                listEl.innerHTML = '<div class="text-center text-red-500 mt-10">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
-            }
-        }
-
-        function startGame() {
-            score = 0; 
-            timeLeft = gameDuration; 
-            combo = 1;
-            totalKeystrokes = 0;
-            mistakes = 0;
-            previousInputLength = 0;
-            
-            document.getElementById('score-text').innerText = score;
-            document.getElementById('timer-text').innerText = `00:${timeLeft.toString().padStart(2, '0')}`;
-            document.getElementById('time-bar').style.width = '100%';
-            
-            // อัปเดต UI ว่าคำนี้ได้คะแนนพื้นฐานเท่าไหร่
-            document.getElementById('base-score-display').innerText = DIFFICULTY_SETTINGS[currentDifficulty].baseScore;
-            
-            updateLiveStats();
-            generateWord(); 
-            showScreen('playing-screen');
-            
-            const typeInput = document.getElementById('type-input');
-            typeInput.value = ''; 
-            typeInput.focus();
-            
-            clearInterval(timerInterval);
-            timerInterval = setInterval(updateTimer, 1000);
-        }
-
-        function updateTimer() {
-            timeLeft--;
-            document.getElementById('timer-text').innerText = `00:${timeLeft.toString().padStart(2, '0')}`;
-            document.getElementById('time-bar').style.width = `${(timeLeft / gameDuration) * 100}%`;
-            
-            const timerIcon = document.getElementById('timer-icon');
-            if (timeLeft <= 10) {
-                document.getElementById('timer-text').className = 'text-2xl font-bold text-red-500';
-                timerIcon.classList.add('animate-pulse');
-            } else {
-                document.getElementById('timer-text').className = 'text-2xl font-bold text-cyan-400';
-                timerIcon.classList.remove('animate-pulse');
-            }
-
-            if (timeLeft <= 0) endGame();
-        }
-
-        async function generateWord() {
-            if (isFetching) return; isFetching = true;
-            document.getElementById('word-display').classList.add('hidden');
-            document.getElementById('word-loading').classList.remove('hidden');
-            
-            const conf = DIFFICULTY_SETTINGS[currentDifficulty];
-
-            // ถ้าระดับง่าย (easy) ให้ดึงคำศัพท์ในชีวิตประจำวันที่เราเตรียมไว้ เพื่อไม่ให้ API สุ่มคำแปลกๆ มาให้
-            if (currentDifficulty === 'easy') {
-                const easyWords = FALLBACK_WORDS.easy;
-                currentWord = easyWords[Math.floor(Math.random() * easyWords.length)];
-                
-                document.getElementById('api-status').textContent = '🏠 Daily Words (Easy Mode)';
-                document.getElementById('api-status').className = 'text-emerald-500';
-                renderWord();
-                
-                isFetching = false;
-                previousInputLength = 0; 
-                document.getElementById('word-loading').classList.add('hidden');
-                document.getElementById('word-display').classList.remove('hidden');
-                return;
-            }
-
-            try {
-                const letter = String.fromCharCode(97 + Math.floor(Math.random()*26));
-                // ดึงคำมาเยอะๆ เพื่อให้มีโอกาสกรองเจอความยาวที่ต้องการ
-                const res = await fetch(`https://api.datamuse.com/words?sp=${letter}*&max=100`);
-                const data = await res.json();
-                
-                // กรองคำให้ตรงกับความยาวที่กำหนดในแต่ละระดับความยาก
-                const validWords = data.filter(item => {
-                    const wordLen = item.word.length;
-                    return /^[a-z]+$/.test(item.word) && wordLen >= conf.minLen && wordLen <= conf.maxLen;
-                });
-
-                if(validWords.length > 0) {
-                    currentWord = validWords[Math.floor(Math.random()*validWords.length)].word.toLowerCase();
-                } else {
-                    throw new Error('No words matching difficulty');
-                }
-                
-                document.getElementById('api-status').textContent = '🌐 Datamuse API ✓';
-                document.getElementById('api-status').className = 'text-slate-600';
-                renderWord();
-            } catch (e) { 
-                // Fallback ตามระดับความยากที่เลือกไว้
-                const fallbackList = FALLBACK_WORDS[currentDifficulty];
-                currentWord = fallbackList[Math.floor(Math.random()*fallbackList.length)]; 
-                
-                document.getElementById('api-status').textContent = '⚠️ Offline Mode';
-                document.getElementById('api-status').className = 'text-red-700';
-                renderWord(); 
-            }
-            finally {
-                isFetching = false;
-                previousInputLength = 0; 
-                document.getElementById('word-loading').classList.add('hidden');
-                document.getElementById('word-display').classList.remove('hidden');
-            }
-        }
-
-        function renderWord() {
-            const val = document.getElementById('type-input').value.toLowerCase();
-            document.getElementById('word-display').innerHTML = currentWord.split('').map((c, i) => {
-                let colorClass = 'text-slate-400';
-                if (i < val.length) {
-                    colorClass = val[i] === c ? 'text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]' : 'text-red-500 bg-red-500/20 rounded border border-red-500';
-                }
-                return `<span class="${colorClass} transition-colors duration-75">${c}</span>`;
-            }).join('');
-        }
-
-        function updateLiveStats() {
-            document.getElementById('live-correct').innerText = totalKeystrokes - mistakes;
-            document.getElementById('live-mistakes').innerText = mistakes;
-        }
-
-        document.getElementById('type-input').addEventListener('input', (e) => {
-            const val = e.target.value.toLowerCase();
-            e.target.value = val;
-            
-            if (val.length > previousInputLength) {
-                totalKeystrokes++;
-                if (val !== currentWord.substring(0, val.length)) {
-                    mistakes++;
-                }
-                updateLiveStats();
-            }
-            previousInputLength = val.length;
-
-            let isTypo = val !== currentWord.substring(0, val.length);
-
-            if (isTypo) combo = 1;
-            
-            const comboBadge = document.getElementById('combo-badge');
-            document.getElementById('combo-text').innerText = combo;
-            comboBadge.className = combo > 1 
-                ? 'px-3 py-1 rounded-full font-bold transition-all bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 scale-110' 
-                : 'px-3 py-1 rounded-full font-bold transition-all text-slate-500';
-
-            if (val === currentWord) {
-                // คำนวณคะแนนตามระดับความยาก + Combo
-                const pointsEarned = DIFFICULTY_SETTINGS[currentDifficulty].baseScore * combo;
-                score += pointsEarned; 
-                
-                combo = Math.min(combo + 1, 5);
-                
-                document.getElementById('score-text').innerText = score;
-                e.target.value = ''; 
-                generateWord();
-            } else { 
-                renderWord(); 
-            }
-        });
-
-        async function endGame() {
-            clearInterval(timerInterval);
-            
-            let accuracy = 0;
-            if (totalKeystrokes > 0) {
-                accuracy = Math.max(0, Math.floor(((totalKeystrokes - mistakes) / totalKeystrokes) * 100));
-            }
-
-            document.getElementById('final-score').innerText = score;
-            document.getElementById('final-accuracy').innerText = accuracy + '%';
-            
-            showScreen('end-screen');
-            
-            try {
-                await fetch('/api/save-score', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username: currentUser, score: score})
-                });
-                
-                const currentHigh = parseInt(localStorage.getItem(`highScore_${currentUser}`) || '0');
-                if (score > currentHigh) {
-                    localStorage.setItem(`highScore_${currentUser}`, score);
-                }
-            } catch (e) {
-                console.error("Failed to save score to cloud");
-            }
-        }
-    </script>
+    lucide.createIcons();
+});
+</script>
 </body>
 </html>
