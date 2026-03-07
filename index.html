@@ -7,11 +7,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .hidden { display: none !important; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
 <body class="bg-slate-950 text-white font-mono flex items-center justify-center min-h-screen p-4 selection:bg-cyan-900">
 
-    <div class="max-w-2xl w-full">
+    <div class="max-w-3xl w-full">
         <!-- 1. หน้าจอเริ่มเกม -->
         <div id="start-screen" class="bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center shadow-[0_0_50px_rgba(0,0,0,0.5)] relative">
             <button onclick="logout()" class="absolute top-6 right-6 text-slate-500 hover:text-red-400 text-sm flex items-center gap-1 transition-colors">
@@ -23,26 +27,32 @@
             </h1>
             <p class="text-xl text-emerald-400 mb-6 font-bold">ยินดีต้อนรับ, <span id="player-name">...</span>!</p>
             
-            <!-- ส่วนเพิ่มใหม่: เลือกเวลาจับเวลา -->
-            <div class="mb-8">
-                <p class="text-slate-400 mb-3 text-sm uppercase tracking-widest">เลือกระยะเวลา</p>
-                <div class="flex justify-center gap-4">
-                    <button onclick="selectTime(15)" id="btn-time-15" class="px-6 py-2 rounded-full border-2 border-slate-700 text-slate-400 hover:border-cyan-500 hover:text-cyan-400 transition-all font-bold">
-                        15s
-                    </button>
-                    <button onclick="selectTime(30)" id="btn-time-30" class="px-6 py-2 rounded-full border-2 border-slate-700 text-slate-400 hover:border-cyan-500 hover:text-cyan-400 transition-all font-bold">
-                        30s
-                    </button>
-                    <!-- ค่าเริ่มต้นคือ 60s เลยใส่สไตล์ Active ไว้ก่อน -->
-                    <button onclick="selectTime(60)" id="btn-time-60" class="px-6 py-2 rounded-full border-2 border-cyan-500 text-cyan-400 bg-cyan-500/10 transition-all font-bold">
-                        60s
-                    </button>
+            <!-- ตั้งค่าก่อนเล่น -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- เลือกระยะเวลา -->
+                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                    <p class="text-slate-400 mb-3 text-sm uppercase tracking-widest">เลือกระยะเวลา</p>
+                    <div class="flex justify-center gap-3">
+                        <button onclick="selectTime(15)" id="btn-time-15" class="px-4 py-2 text-sm rounded-full border-2 border-slate-700 text-slate-400 hover:border-cyan-500 hover:text-cyan-400 transition-all font-bold">15s</button>
+                        <button onclick="selectTime(30)" id="btn-time-30" class="px-4 py-2 text-sm rounded-full border-2 border-slate-700 text-slate-400 hover:border-cyan-500 hover:text-cyan-400 transition-all font-bold">30s</button>
+                        <button onclick="selectTime(60)" id="btn-time-60" class="px-4 py-2 text-sm rounded-full border-2 border-cyan-500 text-cyan-400 bg-cyan-500/10 transition-all font-bold">60s</button>
+                    </div>
+                </div>
+
+                <!-- เลือกระดับความยาก -->
+                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                    <p class="text-slate-400 mb-3 text-sm uppercase tracking-widest">ระดับความยาก</p>
+                    <div class="flex justify-center gap-3">
+                        <button onclick="selectDifficulty('easy')" id="btn-diff-easy" class="px-4 py-2 text-sm rounded-full border-2 border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-all font-bold">ง่าย</button>
+                        <button onclick="selectDifficulty('medium')" id="btn-diff-medium" class="px-4 py-2 text-sm rounded-full border-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 transition-all font-bold">ปานกลาง</button>
+                        <button onclick="selectDifficulty('hard')" id="btn-diff-hard" class="px-4 py-2 text-sm rounded-full border-2 border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-all font-bold">ยาก</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex justify-center gap-4">
-                <button onclick="startGame()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 px-8 py-4 rounded-full font-bold text-xl transition-all hover:scale-105 shadow-lg">▶ เริ่มเกม</button>
-                <button onclick="openLeaderboard()" class="bg-yellow-500 hover:bg-yellow-400 text-slate-950 px-6 py-4 rounded-full font-bold text-lg transition-all hover:scale-105 shadow-lg flex items-center gap-2">🏆 จัดอันดับ</button>
+            <div class="flex justify-center gap-4 mt-4">
+                <button onclick="startGame()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 px-8 py-4 rounded-full font-bold text-xl transition-all hover:scale-105 shadow-[0_0_20px_rgba(34,211,238,0.4)] flex items-center gap-2">▶ เริ่มเกม</button>
+                <button onclick="openLeaderboard()" class="bg-yellow-500 hover:bg-yellow-400 text-slate-950 px-6 py-4 rounded-full font-bold text-lg transition-all hover:scale-105 shadow-[0_0_20px_rgba(234,179,8,0.3)] flex items-center gap-2">🏆 จัดอันดับ</button>
             </div>
             
             <div id="high-score-display" class="mt-8 text-yellow-500 font-bold hidden">🏆 คะแนนสูงสุด: <span id="high-score-val">0</span></div>
@@ -57,25 +67,41 @@
                 <div class="w-1/3 text-center">
                     <span id="combo-badge" class="px-3 py-1 rounded-full text-slate-500 font-bold transition-all">⚡ x<span id="combo-text">1</span> COMBO</span>
                 </div>
-                <div class="text-right w-1/3 text-3xl font-black text-green-400">
-                    <span class="text-sm text-slate-400 font-normal mr-2">SCORE</span><span id="score-text">0</span>
+                <div class="text-right w-1/3 text-3xl font-black text-green-400 flex flex-col items-end justify-center">
+                    <div><span id="score-text">0</span></div>
+                    <div class="text-xs text-emerald-400 font-normal uppercase tracking-widest mt-1">+<span id="base-score-display">15</span>/คำ</div>
                 </div>
             </div>
             <div class="bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center shadow-2xl relative overflow-hidden">
                 <div id="time-bar" class="absolute top-0 left-0 h-1 bg-cyan-500 transition-all duration-1000 ease-linear" style="width: 100%"></div>
                 <div id="word-loading" class="hidden text-slate-500 text-lg mb-12 animate-pulse">กำลังโหลดคำ...</div>
-                <div id="word-display" class="text-5xl md:text-7xl font-bold tracking-widest mb-12 select-none"></div>
+                <div id="word-display" class="text-5xl md:text-6xl font-bold tracking-widest mb-12 select-none"></div>
                 <input id="type-input" type="text" autocomplete="off" spellcheck="false" class="w-full bg-slate-950 border-2 border-slate-700 focus:border-cyan-500 text-center text-2xl py-4 rounded-xl text-white outline-none transition-colors" placeholder="พิมพ์ที่นี่..." />
-                <div id="api-status" class="mt-4 text-xs text-slate-600">🌐 Datamuse API</div>
+                
+                <!-- สถานะ Live Stats เล็กๆ ด้านล่าง -->
+                <div class="flex justify-between items-center mt-6 text-xs text-slate-500">
+                    <div id="api-status">🌐 Datamuse API</div>
+                    <div>พิมพ์ถูก: <span id="live-correct" class="text-green-400">0</span> | พิมพ์ผิด: <span id="live-mistakes" class="text-red-400">0</span></div>
+                </div>
             </div>
         </div>
 
         <!-- 3. หน้าจอจบเกม -->
         <div id="end-screen" class="hidden bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center shadow-2xl">
-            <h2 class="text-3xl font-bold text-red-400 mb-2">หมดเวลา!</h2>
-            <div class="text-slate-400 mb-2 mt-8 uppercase tracking-widest text-sm">คะแนนที่ได้</div>
-            <div id="final-score" class="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-500 mb-8">0</div>
-            <button onclick="window.location.reload()" class="bg-slate-100 hover:bg-white text-slate-900 px-8 py-4 rounded-full font-bold text-xl transition-all hover:scale-105">
+            <h2 class="text-3xl font-bold text-red-400 mb-6">หมดเวลา!</h2>
+            
+            <div class="grid grid-cols-2 gap-6 mb-10 bg-slate-950 p-6 rounded-2xl border border-slate-800">
+                <div class="text-center">
+                    <div class="text-slate-400 uppercase tracking-widest text-sm mb-2">SCORE</div>
+                    <div id="final-score" class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">0</div>
+                </div>
+                <div class="text-center border-l border-slate-800">
+                    <div class="text-slate-400 uppercase tracking-widest text-sm mb-2">ACCURACY</div>
+                    <div id="final-accuracy" class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">0%</div>
+                </div>
+            </div>
+
+            <button onclick="window.location.reload()" class="bg-slate-100 hover:bg-white text-slate-900 px-8 py-4 rounded-full font-bold text-xl transition-all hover:scale-105 shadow-lg">
                 🏠 กลับหน้าแรก
             </button>
         </div>
@@ -85,18 +111,18 @@
             <h2 class="text-3xl font-black text-yellow-400 mb-6 flex items-center justify-center gap-2">
                 🏆 Top 10 Leaderboard
             </h2>
-            <!-- พื้นที่แสดงรายชื่อ -->
             <div id="leaderboard-list" class="space-y-3 mb-8 text-left h-64 overflow-y-auto pr-2 custom-scrollbar">
-                <!-- ข้อมูลจะถูกดึงมาใส่ตรงนี้ -->
+                <!-- ข้อมูลจัดอันดับ -->
             </div>
             <button onclick="showScreen('start-screen')" class="bg-slate-100 hover:bg-white text-slate-900 px-8 py-3 rounded-full font-bold transition-all hover:scale-105">
                 🏠 กลับหน้าแรก
             </button>
         </div>
+
     </div>
 
     <script>
-        // 1. ระบบตรวจสอบสิทธิ์ (ถ้าไม่ล็อกอินให้ไปหน้า login)
+        // 1. ระบบตรวจสอบสิทธิ์
         const currentUser = localStorage.getItem('username');
         if (!currentUser) {
             window.location.href = '/login'; 
@@ -113,31 +139,62 @@
 
         function logout() { localStorage.removeItem('username'); window.location.href = '/login'; }
 
-        // 2. ระบบเกมเพลย์
-        const FALLBACK_WORDS = ['javascript', 'developer', 'frontend', 'backend', 'database', 'keyboard', 'monster', 'treasure', 'server', 'cloud', 'network', 'function', 'variable', 'object'];
+        // 2. ตั้งค่าระดับความยากและตัวแปรเกม
+        const DIFFICULTY_SETTINGS = {
+            easy: { minLen: 3, maxLen: 5, baseScore: 10 },
+            medium: { minLen: 6, maxLen: 8, baseScore: 15 },
+            hard: { minLen: 9, maxLen: 20, baseScore: 20 }
+        };
+
+        const FALLBACK_WORDS = {
+            // เพิ่มคำง่ายๆ ในชีวิตประจำวัน 3-5 ตัวอักษร
+            easy: [
+                'cat', 'dog', 'car', 'sun', 'box', 'tree', 'home', 'bird', 'fish', 'food', 
+                'good', 'time', 'water', 'love', 'door', 'room', 'game', 'play', 'happy', 'milk', 
+                'apple', 'star', 'moon', 'shoe', 'hat', 'book', 'desk', 'pen', 'bus', 'boy', 
+                'girl', 'city', 'road', 'sky', 'rain', 'snow', 'wind', 'fire', 'light', 'dark', 
+                'day', 'night', 'smile', 'house', 'train', 'plant', 'chair', 'table', 'phone', 'clock', 
+                'watch', 'shirt', 'pants', 'shoes', 'socks', 'bread', 'meat', 'egg', 'cake', 'sweet', 
+                'sugar', 'salt', 'ice', 'cold', 'hot', 'warm', 'cool', 'fast', 'slow', 'high', 
+                'low', 'big', 'small', 'long', 'short', 'old', 'new', 'young', 'man', 'woman', 
+                'child', 'baby', 'hand', 'foot', 'head', 'eye', 'ear', 'nose', 'mouth', 'hair', 
+                'face', 'neck', 'arm', 'leg', 'back', 'bone', 'skin', 'body'
+            ],
+            medium: ['server', 'system', 'cloud', 'laptop', 'mouse', 'python', 'react', 'router', 'domain'],
+            hard: ['javascript', 'developer', 'frontend', 'database', 'algorithm', 'asynchronous', 'framework', 'deployment']
+        };
+        
+        let currentDifficulty = 'medium';
+        let gameDuration = 60; 
         
         let score = 0;
-        let gameDuration = 60; // เก็บเวลาที่เลือกว่ากี่วินาที
         let timeLeft = 60; 
         let combo = 1;
         let currentWord = '';
         let timerInterval;
         let isFetching = false;
 
-        // ฟังก์ชันเลือกเวลาและเปลี่ยนสีปุ่ม
+        let totalKeystrokes = 0;
+        let mistakes = 0;
+        let previousInputLength = 0;
+
         function selectTime(seconds) {
             gameDuration = seconds;
-            const times = [15, 30, 60];
-            
-            times.forEach(t => {
+            [15, 30, 60].forEach(t => {
                 const btn = document.getElementById(`btn-time-${t}`);
-                if (t === seconds) {
-                    // ปุ่มที่ถูกเลือก
-                    btn.className = "px-6 py-2 rounded-full border-2 border-cyan-500 text-cyan-400 bg-cyan-500/10 transition-all font-bold";
-                } else {
-                    // ปุ่มที่ไม่ได้เลือก
-                    btn.className = "px-6 py-2 rounded-full border-2 border-slate-700 text-slate-400 hover:border-cyan-500 hover:text-cyan-400 transition-all font-bold";
-                }
+                btn.className = (t === seconds) 
+                    ? "px-4 py-2 text-sm rounded-full border-2 border-cyan-500 text-cyan-400 bg-cyan-500/10 transition-all font-bold"
+                    : "px-4 py-2 text-sm rounded-full border-2 border-slate-700 text-slate-400 hover:border-cyan-500 hover:text-cyan-400 transition-all font-bold";
+            });
+        }
+
+        function selectDifficulty(diff) {
+            currentDifficulty = diff;
+            ['easy', 'medium', 'hard'].forEach(d => {
+                const btn = document.getElementById(`btn-diff-${d}`);
+                btn.className = (d === diff)
+                    ? "px-4 py-2 text-sm rounded-full border-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 transition-all font-bold"
+                    : "px-4 py-2 text-sm rounded-full border-2 border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-all font-bold";
             });
         }
 
@@ -146,7 +203,6 @@
             document.getElementById(id).classList.remove('hidden');
         }
 
-        // ฟังก์ชันดึงและแสดงข้อมูล Leaderboard
         async function openLeaderboard() {
             showScreen('leaderboard-screen');
             const listEl = document.getElementById('leaderboard-list');
@@ -169,16 +225,15 @@
                     else if(index === 2) medal = '🥉';
                     else medal = `<span class="w-6 inline-block text-center text-slate-500">${index + 1}</span>`;
 
-                    // ไฮไลท์สีให้ชื่อของเราเอง
                     const isMe = user.username === currentUser ? 'bg-cyan-900/40 border-cyan-500/50' : 'bg-slate-800 border-slate-700';
 
                     return `
                         <div class="flex justify-between items-center p-3 rounded-xl border ${isMe}">
                             <div class="flex items-center gap-3">
-                                <span class="text-xl">${medal}</span>
+                                <span class="text-xl w-8 text-center">${medal}</span>
                                 <span class="font-bold ${user.username === currentUser ? 'text-cyan-400' : 'text-slate-200'}">${user.username}</span>
                             </div>
-                            <div class="font-black text-green-400">${user.highScore}</div>
+                            <div class="font-black text-green-400 text-xl">${user.highScore}</div>
                         </div>
                     `;
                 }).join('');
@@ -190,13 +245,20 @@
 
         function startGame() {
             score = 0; 
-            timeLeft = gameDuration; // ตั้งเวลาตามที่ผู้เล่นเลือก
+            timeLeft = gameDuration; 
             combo = 1;
+            totalKeystrokes = 0;
+            mistakes = 0;
+            previousInputLength = 0;
             
             document.getElementById('score-text').innerText = score;
             document.getElementById('timer-text').innerText = `00:${timeLeft.toString().padStart(2, '0')}`;
             document.getElementById('time-bar').style.width = '100%';
             
+            // อัปเดต UI ว่าคำนี้ได้คะแนนพื้นฐานเท่าไหร่
+            document.getElementById('base-score-display').innerText = DIFFICULTY_SETTINGS[currentDifficulty].baseScore;
+            
+            updateLiveStats();
             generateWord(); 
             showScreen('playing-screen');
             
@@ -211,7 +273,6 @@
         function updateTimer() {
             timeLeft--;
             document.getElementById('timer-text').innerText = `00:${timeLeft.toString().padStart(2, '0')}`;
-            // คำนวณหลอดเวลาโดยอิงจาก gameDuration ที่ตั้งไว้
             document.getElementById('time-bar').style.width = `${(timeLeft / gameDuration) * 100}%`;
             
             const timerIcon = document.getElementById('timer-icon');
@@ -230,29 +291,58 @@
             if (isFetching) return; isFetching = true;
             document.getElementById('word-display').classList.add('hidden');
             document.getElementById('word-loading').classList.remove('hidden');
+            
+            const conf = DIFFICULTY_SETTINGS[currentDifficulty];
+
+            // ถ้าระดับง่าย (easy) ให้ดึงคำศัพท์ในชีวิตประจำวันที่เราเตรียมไว้ เพื่อไม่ให้ API สุ่มคำแปลกๆ มาให้
+            if (currentDifficulty === 'easy') {
+                const easyWords = FALLBACK_WORDS.easy;
+                currentWord = easyWords[Math.floor(Math.random() * easyWords.length)];
+                
+                document.getElementById('api-status').textContent = '🏠 Daily Words (Easy Mode)';
+                document.getElementById('api-status').className = 'text-emerald-500';
+                renderWord();
+                
+                isFetching = false;
+                previousInputLength = 0; 
+                document.getElementById('word-loading').classList.add('hidden');
+                document.getElementById('word-display').classList.remove('hidden');
+                return;
+            }
+
             try {
                 const letter = String.fromCharCode(97 + Math.floor(Math.random()*26));
-                const res = await fetch(`https://api.datamuse.com/words?sp=${letter}???*&max=20`);
+                // ดึงคำมาเยอะๆ เพื่อให้มีโอกาสกรองเจอความยาวที่ต้องการ
+                const res = await fetch(`https://api.datamuse.com/words?sp=${letter}*&max=100`);
                 const data = await res.json();
                 
-                const validWords = data.filter(item => /^[a-z]+$/.test(item.word));
+                // กรองคำให้ตรงกับความยาวที่กำหนดในแต่ละระดับความยาก
+                const validWords = data.filter(item => {
+                    const wordLen = item.word.length;
+                    return /^[a-z]+$/.test(item.word) && wordLen >= conf.minLen && wordLen <= conf.maxLen;
+                });
+
                 if(validWords.length > 0) {
                     currentWord = validWords[Math.floor(Math.random()*validWords.length)].word.toLowerCase();
                 } else {
-                    throw new Error('No valid words');
+                    throw new Error('No words matching difficulty');
                 }
                 
                 document.getElementById('api-status').textContent = '🌐 Datamuse API ✓';
-                document.getElementById('api-status').className = 'mt-4 text-xs text-slate-600';
+                document.getElementById('api-status').className = 'text-slate-600';
                 renderWord();
             } catch (e) { 
-                currentWord = FALLBACK_WORDS[Math.floor(Math.random()*FALLBACK_WORDS.length)]; 
-                document.getElementById('api-status').textContent = '⚠️ Offline Mode (Fallback)';
-                document.getElementById('api-status').className = 'mt-4 text-xs text-red-700';
+                // Fallback ตามระดับความยากที่เลือกไว้
+                const fallbackList = FALLBACK_WORDS[currentDifficulty];
+                currentWord = fallbackList[Math.floor(Math.random()*fallbackList.length)]; 
+                
+                document.getElementById('api-status').textContent = '⚠️ Offline Mode';
+                document.getElementById('api-status').className = 'text-red-700';
                 renderWord(); 
             }
             finally {
                 isFetching = false;
+                previousInputLength = 0; 
                 document.getElementById('word-loading').classList.add('hidden');
                 document.getElementById('word-display').classList.remove('hidden');
             }
@@ -263,20 +353,31 @@
             document.getElementById('word-display').innerHTML = currentWord.split('').map((c, i) => {
                 let colorClass = 'text-slate-400';
                 if (i < val.length) {
-                    colorClass = val[i] === c ? 'text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]' : 'text-red-500 bg-red-500/20 rounded';
+                    colorClass = val[i] === c ? 'text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]' : 'text-red-500 bg-red-500/20 rounded border border-red-500';
                 }
-                return `<span class="${colorClass} transition-colors duration-100">${c}</span>`;
+                return `<span class="${colorClass} transition-colors duration-75">${c}</span>`;
             }).join('');
+        }
+
+        function updateLiveStats() {
+            document.getElementById('live-correct').innerText = totalKeystrokes - mistakes;
+            document.getElementById('live-mistakes').innerText = mistakes;
         }
 
         document.getElementById('type-input').addEventListener('input', (e) => {
             const val = e.target.value.toLowerCase();
             e.target.value = val;
             
-            let isTypo = false;
-            for (let i = 0; i < val.length; i++) {
-                if (val[i] !== currentWord[i]) { isTypo = true; break; }
+            if (val.length > previousInputLength) {
+                totalKeystrokes++;
+                if (val !== currentWord.substring(0, val.length)) {
+                    mistakes++;
+                }
+                updateLiveStats();
             }
+            previousInputLength = val.length;
+
+            let isTypo = val !== currentWord.substring(0, val.length);
 
             if (isTypo) combo = 1;
             
@@ -287,10 +388,15 @@
                 : 'px-3 py-1 rounded-full font-bold transition-all text-slate-500';
 
             if (val === currentWord) {
-                score += (10 * combo); 
+                // คำนวณคะแนนตามระดับความยาก + Combo
+                const pointsEarned = DIFFICULTY_SETTINGS[currentDifficulty].baseScore * combo;
+                score += pointsEarned; 
+                
                 combo = Math.min(combo + 1, 5);
+                
                 document.getElementById('score-text').innerText = score;
-                e.target.value = ''; generateWord();
+                e.target.value = ''; 
+                generateWord();
             } else { 
                 renderWord(); 
             }
@@ -298,17 +404,24 @@
 
         async function endGame() {
             clearInterval(timerInterval);
+            
+            let accuracy = 0;
+            if (totalKeystrokes > 0) {
+                accuracy = Math.max(0, Math.floor(((totalKeystrokes - mistakes) / totalKeystrokes) * 100));
+            }
+
             document.getElementById('final-score').innerText = score;
+            document.getElementById('final-accuracy').innerText = accuracy + '%';
+            
             showScreen('end-screen');
             
-            // อัปเดตคะแนนลงฐานข้อมูล
             try {
                 await fetch('/api/save-score', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({username: currentUser, score: score})
                 });
-                // หลังจากส่งบันทึก ให้อัปเดตคะแนนใน localStorage เครื่องด้วย
+                
                 const currentHigh = parseInt(localStorage.getItem(`highScore_${currentUser}`) || '0');
                 if (score > currentHigh) {
                     localStorage.setItem(`highScore_${currentUser}`, score);
