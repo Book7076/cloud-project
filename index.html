@@ -51,7 +51,12 @@
 
             <div class="bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center shadow-2xl relative overflow-hidden">
                 <div id="time-bar" class="absolute top-0 left-0 h-1 bg-cyan-500 transition-all duration-1000 ease-linear" style="width: 100%"></div>
+
+                <!-- Loading indicator -->
+                <div id="word-loading" class="hidden text-slate-500 text-lg mb-12 animate-pulse">กำลังโหลดคำ...</div>
+
                 <div id="word-display" class="text-5xl md:text-7xl font-bold tracking-widest mb-12 select-none"></div>
+
                 <input
                     id="type-input"
                     type="text"
@@ -60,6 +65,11 @@
                     class="w-full bg-slate-950 border-2 border-slate-700 focus:border-cyan-500 text-center text-2xl py-4 rounded-xl text-white outline-none transition-colors"
                     placeholder="พิมพ์ที่นี่..."
                 />
+
+                <!-- แสดงสถานะ API -->
+                <div id="api-status" class="mt-4 text-xs text-slate-600">
+                    🌐 Random Word API
+                </div>
             </div>
         </div>
 
@@ -82,12 +92,12 @@
     </div>
 
     <script>
-        const WORD_LIST = [
+        // ===== Fallback list ใช้เมื่อ API ล่ม =====
+        const FALLBACK_WORDS = [
             'javascript', 'developer', 'frontend', 'backend', 'database',
-            'gamification', 'keyboard', 'monitor', 'software', 'hardware',
+            'keyboard', 'monitor', 'software', 'hardware', 'network',
             'challenge', 'adventure', 'warrior', 'magic', 'crystal',
-            'monster', 'treasure', 'dungeon', 'castle', 'shield',
-            'mongodb', 'server', 'cloud', 'network', 'function'
+            'monster', 'treasure', 'dungeon', 'castle', 'shield'
         ];
 
         let score = 0;
@@ -96,11 +106,13 @@
         let highScore = 0;
         let currentWord = '';
         let timerInterval;
+        let isFetching = false;
 
         const startScreen   = document.getElementById('start-screen');
         const playingScreen = document.getElementById('playing-screen');
         const endScreen     = document.getElementById('end-screen');
         const wordDisplay   = document.getElementById('word-display');
+        const wordLoading   = document.getElementById('word-loading');
         const typeInput     = document.getElementById('type-input');
         const scoreText     = document.getElementById('score-text');
         const comboText     = document.getElementById('combo-text');
@@ -108,6 +120,7 @@
         const timerText     = document.getElementById('timer-text');
         const timerIcon     = document.getElementById('timer-icon');
         const timeBar       = document.getElementById('time-bar');
+        const apiStatus     = document.getElementById('api-status');
 
         function showScreen(screenId) {
             startScreen.classList.add('hidden');
@@ -125,11 +138,11 @@
             updateComboUI();
             updateTimeUI();
 
-            generateWord();
             showScreen('playing-screen');
-
             typeInput.value = '';
             typeInput.focus();
+
+            generateWord();
 
             clearInterval(timerInterval);
             timerInterval = setInterval(updateTimer, 1000);
@@ -142,7 +155,6 @@
         }
 
         function updateTimeUI() {
-            // ✅ แก้ไข: ใช้ backtick ถูกต้อง
             timerText.innerText = `00:${timeLeft.toString().padStart(2, '0')}`;
             timeBar.style.width = `${(timeLeft / 60) * 100}%`;
 
@@ -157,10 +169,39 @@
             }
         }
 
-        function generateWord() {
-            const randomIndex = Math.floor(Math.random() * WORD_LIST.length);
-            currentWord = WORD_LIST[randomIndex];
-            renderWord();
+        // ===== ดึงคำจาก Random Word API =====
+        async function generateWord() {
+            if (isFetching) return;
+            isFetching = true;
+
+            // แสดง loading
+            wordDisplay.classList.add('hidden');
+            wordLoading.classList.remove('hidden');
+            typeInput.disabled = true;
+
+            try {
+                const res = await fetch('https://random-word-api.herokuapp.com/word?number=1');
+                if (!res.ok) throw new Error('API error');
+                const data = await res.json();
+                currentWord = data[0].toLowerCase();
+                apiStatus.textContent = '🌐 Random Word API ✓';
+                apiStatus.classList.remove('text-red-700');
+                apiStatus.classList.add('text-slate-600');
+            } catch (err) {
+                // API ล่ม → ใช้ fallback
+                const i = Math.floor(Math.random() * FALLBACK_WORDS.length);
+                currentWord = FALLBACK_WORDS[i];
+                apiStatus.textContent = '⚠️ ใช้ offline mode (API ไม่ตอบสนอง)';
+                apiStatus.classList.remove('text-slate-600');
+                apiStatus.classList.add('text-red-700');
+            } finally {
+                isFetching = false;
+                wordLoading.classList.add('hidden');
+                wordDisplay.classList.remove('hidden');
+                typeInput.disabled = false;
+                typeInput.focus();
+                renderWord();
+            }
         }
 
         function renderWord() {
@@ -178,13 +219,14 @@
                         colorClass = 'text-red-500 bg-red-500/20 rounded';
                     }
                 }
-                // ✅ แก้ไข: ใช้ backtick ถูกต้อง
                 html += `<span class="transition-colors duration-100 ${colorClass}">${char}</span>`;
             }
             wordDisplay.innerHTML = html;
         }
 
         typeInput.addEventListener('input', (e) => {
+            if (isFetching) return;
+
             const userInput = e.target.value.toLowerCase();
             typeInput.value = userInput;
 
@@ -209,7 +251,7 @@
                 updateComboUI();
 
                 typeInput.value = '';
-                generateWord();
+                generateWord(); // ดึงคำใหม่จาก API
             } else {
                 renderWord();
             }
@@ -243,7 +285,6 @@
                 newRecordBadge.classList.add('hidden');
             }
 
-            // ✅ แก้ไข: ใช้ backtick ถูกต้อง
             document.getElementById('end-high-score').innerText = `คะแนนสูงสุด: ${Math.max(score, highScore)}`;
             showScreen('end-screen');
         }
