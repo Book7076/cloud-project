@@ -1,545 +1,252 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ตารางสิ่งที่ต้องทำ</title>
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
-  <style>
-    :root {
-      --bg: #0d0d0d;
-      --surface: #161616;
-      --card: #1e1e1e;
-      --accent: #e8c97d;
-      --accent2: #c47a3a;
-      --text: #f0ece3;
-      --muted: #6b6560;
-      --border: #2a2825;
-      --done-bg: #1a1a17;
-      --done-text: #3d3b36;
-      --red: #e05252;
-      --green: #52b788;
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Sarabun', sans-serif;
-      min-height: 100vh;
-      padding: 2rem 1rem;
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      top: -200px; left: -200px;
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(232,201,125,0.06) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .wrapper {
-      max-width: 780px;
-      margin: 0 auto;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* HEADER */
-    header {
-      text-align: center;
-      margin-bottom: 2.5rem;
-      animation: fadeDown 0.6s ease both;
-    }
-
-    header h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 2.6rem;
-      color: var(--accent);
-      letter-spacing: 1px;
-      line-height: 1.2;
-    }
-
-    header p.subtitle {
-      margin-top: 0.4rem;
-      font-size: 0.9rem;
-      color: var(--muted);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-
-    .date-display {
-      display: inline-block;
-      margin-top: 1rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 30px;
-      padding: 0.4rem 1.2rem;
-      font-size: 0.85rem;
-      color: var(--accent);
-      letter-spacing: 1px;
-    }
-
-    /* DAYS TABS */
-    .days-tabs {
-      display: flex;
-      gap: 0.4rem;
-      overflow-x: auto;
-      padding-bottom: 0.5rem;
-      margin-bottom: 1.5rem;
-      scrollbar-width: none;
-      animation: fadeUp 0.6s ease 0.1s both;
-    }
-    .days-tabs::-webkit-scrollbar { display: none; }
-
-    .day-tab {
-      flex-shrink: 0;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--muted);
-      font-family: 'Sarabun', sans-serif;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-    .day-tab:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    .day-tab.active {
-      background: var(--accent);
-      color: #1a1500;
-      border-color: var(--accent);
-      font-weight: 700;
-    }
-    .day-tab .count {
-      display: inline-block;
-      background: rgba(0,0,0,0.2);
-      border-radius: 10px;
-      padding: 0 5px;
-      margin-left: 4px;
-      font-size: 0.72rem;
-    }
-    .day-tab.active .count {
-      background: rgba(0,0,0,0.15);
-    }
-
-    /* PROGRESS */
-    .progress-bar-wrap {
-      height: 4px;
-      background: var(--border);
-      border-radius: 99px;
-      margin-bottom: 1.5rem;
-      overflow: hidden;
-      animation: fadeUp 0.6s ease 0.15s both;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent2), var(--accent));
-      border-radius: 99px;
-      transition: width 0.4s ease;
-    }
-    .progress-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-bottom: 0.6rem;
-      animation: fadeUp 0.6s ease 0.15s both;
-    }
-    .progress-label span:last-child { color: var(--accent); }
-
-    /* ADD TASK */
-    .add-section {
-      display: flex;
-      gap: 0.6rem;
-      margin-bottom: 1.8rem;
-      animation: fadeUp 0.6s ease 0.2s both;
-    }
-
-    .add-section input[type="text"] {
-      flex: 1;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.75rem 1rem;
-      color: var(--text);
-      font-family: 'Sarabun', sans-serif;
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .add-section input[type="text"]::placeholder { color: var(--muted); }
-    .add-section input[type="text"]:focus { border-color: var(--accent); }
-
-    .add-section select {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.75rem 0.7rem;
-      color: var(--text);
-      font-family: 'Sarabun', sans-serif;
-      font-size: 0.85rem;
-      outline: none;
-      cursor: pointer;
-    }
-
-    .add-section button {
-      background: var(--accent);
-      color: #1a1500;
-      border: none;
-      border-radius: 10px;
-      padding: 0.75rem 1.4rem;
-      font-family: 'Sarabun', sans-serif;
-      font-weight: 700;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-    .add-section button:hover {
-      background: #f5d98c;
-      transform: translateY(-1px);
-    }
-    .add-section button:active { transform: translateY(0); }
-
-    /* TASK LIST */
-    .task-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-      animation: fadeUp 0.6s ease 0.25s both;
-    }
-
-    .task-item {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 0.9rem 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      transition: all 0.2s;
-      animation: slideIn 0.3s ease both;
-    }
-    .task-item:hover { border-color: #333; transform: translateX(3px); }
-    .task-item.done {
-      background: var(--done-bg);
-      border-color: #222;
-      transform: none;
-    }
-
-    .task-check {
-      width: 22px; height: 22px;
-      border: 2px solid var(--border);
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.2s;
-      color: transparent;
-      font-size: 0.75rem;
-    }
-    .task-check:hover { border-color: var(--accent); }
-    .task-item.done .task-check {
-      background: var(--green);
-      border-color: var(--green);
-      color: white;
-    }
-
-    .task-body { flex: 1; min-width: 0; }
-    .task-text {
-      font-size: 0.95rem;
-      font-weight: 400;
-      color: var(--text);
-      word-break: break-word;
-      transition: all 0.2s;
-    }
-    .task-item.done .task-text {
-      text-decoration: line-through;
-      color: var(--done-text);
-    }
-
-    .task-meta {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-top: 0.3rem;
-    }
-
-    .tag {
-      font-size: 0.7rem;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-    .tag-work    { background: rgba(232,201,125,0.12); color: #e8c97d; }
-    .tag-personal{ background: rgba(82,183,136,0.12);  color: #52b788; }
-    .tag-health  { background: rgba(224,82,82,0.12);   color: #e05252; }
-    .tag-study   { background: rgba(100,149,237,0.12); color: #6495ed; }
-    .tag-other   { background: rgba(160,160,160,0.12); color: #aaa; }
-
-    .task-time {
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
-
-    .task-del {
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 1rem;
-      line-height: 1;
-      padding: 4px;
-      border-radius: 4px;
-      flex-shrink: 0;
-      transition: color 0.2s;
-    }
-    .task-del:hover { color: var(--red); }
-
-    /* EMPTY STATE */
-    .empty {
-      text-align: center;
-      padding: 3rem 1rem;
-      color: var(--muted);
-      font-size: 0.9rem;
-      display: none;
-    }
-    .empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
-
-    /* FOOTER STATS */
-    .stats {
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      margin-top: 2.5rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--border);
-      animation: fadeUp 0.6s ease 0.4s both;
-    }
-    .stat { text-align: center; }
-    .stat-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--accent); line-height: 1; }
-    .stat-label { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
-
-    /* ANIMATIONS */
-    @keyframes fadeDown { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:none; } }
-    @keyframes fadeUp   { from { opacity:0; transform:translateY(16px);  } to { opacity:1; transform:none; } }
-    @keyframes slideIn  { from { opacity:0; transform:translateX(-12px); } to { opacity:1; transform:none; } }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Quest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden { display: none !important; }
+    </style>
 </head>
-<body>
-<div class="wrapper">
+<body class="bg-slate-950 text-white font-mono flex items-center justify-center min-h-screen p-4 selection:bg-cyan-900">
 
-  <header>
-    <h1>📋 Daily Planner</h1>
-    <p class="subtitle">ตารางสิ่งที่ต้องทำประจำวัน</p>
-    <div class="date-display" id="dateDisplay"></div>
-  </header>
-
-  <!-- DAYS TABS -->
-  <div class="days-tabs" id="daysTabs"></div>
-
-  <!-- PROGRESS -->
-  <div class="progress-label">
-    <span id="progressText">ความคืบหน้า</span>
-    <span id="progressPct">0%</span>
-  </div>
-  <div class="progress-bar-wrap">
-    <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
-  </div>
-
-  <!-- ADD -->
-  <div class="add-section">
-    <input type="text" id="taskInput" placeholder="เพิ่มสิ่งที่ต้องทำ..." />
-    <select id="tagSelect">
-      <option value="work">💼 งาน</option>
-      <option value="personal">🏠 ส่วนตัว</option>
-      <option value="health">❤️ สุขภาพ</option>
-      <option value="study">📚 เรียน</option>
-      <option value="other">✨ อื่นๆ</option>
-    </select>
-    <button onclick="addTask()">+ เพิ่ม</button>
-  </div>
-
-  <!-- TASK LIST -->
-  <div class="task-list" id="taskList"></div>
-  <div class="empty" id="emptyState">
-    <div class="empty-icon">✅</div>
-    <div>ยังไม่มีรายการในวันนี้<br/>เพิ่มสิ่งที่ต้องทำด้านบนได้เลย</div>
-  </div>
-
-  <!-- STATS -->
-  <div class="stats">
-    <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">รายการทั้งหมด</div></div>
-    <div class="stat"><div class="stat-num" id="statDone">0</div><div class="stat-label">เสร็จแล้ว</div></div>
-    <div class="stat"><div class="stat-num" id="statLeft">0</div><div class="stat-label">ยังเหลือ</div></div>
-  </div>
-
-</div>
-
-<script>
-  const DAYS_TH = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
-  const MONTHS_TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  const TAG_LABELS = { work:'💼 งาน', personal:'🏠 ส่วนตัว', health:'❤️ สุขภาพ', study:'📚 เรียน', other:'✨ อื่นๆ' };
-
-  // State: tasks[dayKey] = [{id, text, tag, time, done}]
-  let tasks = {};
-  let activeDay = 0; // index in week array
-
-  // Build week
-  const today = new Date();
-  const week = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - today.getDay() + i);
-    week.push(d);
-  }
-
-  function dayKey(d) {
-    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-  }
-
-  function todayIdx() {
-    return today.getDay();
-  }
-
-  function init() {
-    activeDay = todayIdx();
-    // Date display
-    const d = today;
-    document.getElementById('dateDisplay').textContent =
-      `วัน${DAYS_TH[d.getDay()]}ที่ ${d.getDate()} ${MONTHS_TH[d.getMonth()]} ${d.getFullYear() + 543}`;
-
-    renderTabs();
-    renderTasks();
-  }
-
-  function renderTabs() {
-    const container = document.getElementById('daysTabs');
-    container.innerHTML = '';
-    week.forEach((d, i) => {
-      const key = dayKey(d);
-      const count = (tasks[key] || []).length;
-      const btn = document.createElement('button');
-      btn.className = 'day-tab' + (i === activeDay ? ' active' : '');
-      btn.innerHTML = `วัน${DAYS_TH[d.getDay()]} ${d.getDate()}` +
-        (count > 0 ? `<span class="count">${count}</span>` : '');
-      if (d.getDate() === today.getDate() && d.getMonth() === today.getMonth()) {
-        btn.innerHTML += ' ●';
-      }
-      btn.onclick = () => { activeDay = i; renderTabs(); renderTasks(); };
-      container.appendChild(btn);
-    });
-  }
-
-  function renderTasks() {
-    const key = dayKey(week[activeDay]);
-    const list = tasks[key] || [];
-    const container = document.getElementById('taskList');
-    const empty = document.getElementById('emptyState');
-
-    container.innerHTML = '';
-
-    if (list.length === 0) {
-      empty.style.display = 'block';
-    } else {
-      empty.style.display = 'none';
-      list.forEach((t, idx) => {
-        const item = document.createElement('div');
-        item.className = 'task-item' + (t.done ? ' done' : '');
-        item.innerHTML = `
-          <div class="task-check" onclick="toggleTask('${key}', ${idx})">${t.done ? '✓' : ''}</div>
-          <div class="task-body">
-            <div class="task-text">${escapeHtml(t.text)}</div>
-            <div class="task-meta">
-              <span class="tag tag-${t.tag}">${TAG_LABELS[t.tag]}</span>
-              <span class="task-time">${t.time}</span>
+    <div class="max-w-2xl w-full">
+        
+        <!-- 1. หน้าจอเริ่มเกม -->
+        <div id="start-screen" class="bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+            <div class="text-6xl mb-6 text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">⌨️</div>
+            <h1 class="text-4xl md:text-6xl font-black mb-4 tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+                TYPING QUEST
+            </h1>
+            <p class="text-slate-400 mb-8 text-lg">
+                พิมพ์คำศัพท์ให้เร็วและแม่นยำที่สุดภายใน 60 วินาที<br/>
+                พิมพ์ต่อเนื่องเพื่อสะสม <span class="text-yellow-400 font-bold">Combo Multiplier!</span>
+            </p>
+            <button onclick="startGame()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 px-8 py-4 rounded-full font-bold text-xl transition-all hover:scale-105 flex items-center justify-center gap-2 mx-auto shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                ▶ เริ่มเกม
+            </button>
+            <div id="high-score-display" class="mt-8 text-yellow-500 font-bold hidden">
+                🏆 คะแนนสูงสุด: <span id="high-score-val">0</span>
             </div>
-          </div>
-          <button class="task-del" onclick="deleteTask('${key}', ${idx})" title="ลบ">✕</button>
-        `;
-        container.appendChild(item);
-      });
-    }
+        </div>
 
-    updateStats(list);
-    updateProgress(list);
-  }
+        <!-- 2. หน้าจอขณะเล่น -->
+        <div id="playing-screen" class="hidden space-y-6">
+            <div class="flex items-center justify-between bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-lg">
+                <div class="flex items-center gap-3 w-1/3">
+                    <span id="timer-icon" class="text-xl">⏱️</span>
+                    <span id="timer-text" class="text-2xl font-bold text-cyan-400">00:60</span>
+                </div>
+                <div class="w-1/3 text-center">
+                    <div id="combo-badge" class="inline-flex items-center gap-1 px-3 py-1 rounded-full font-bold text-lg text-slate-500 transition-all">
+                        ⚡ x<span id="combo-text">1</span> COMBO
+                    </div>
+                </div>
+                <div class="flex items-center justify-end gap-2 w-1/3">
+                    <span class="text-slate-400">SCORE</span>
+                    <span id="score-text" class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">0</span>
+                </div>
+            </div>
 
-  function addTask() {
-    const input = document.getElementById('taskInput');
-    const tag = document.getElementById('tagSelect').value;
-    const text = input.value.trim();
-    if (!text) { input.focus(); return; }
+            <div class="bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center shadow-2xl relative overflow-hidden">
+                <div id="time-bar" class="absolute top-0 left-0 h-1 bg-cyan-500 transition-all duration-1000 ease-linear" style="width: 100%"></div>
+                <div id="word-display" class="text-5xl md:text-7xl font-bold tracking-widest mb-12 select-none"></div>
+                <input
+                    id="type-input"
+                    type="text"
+                    autocomplete="off"
+                    spellcheck="false"
+                    class="w-full bg-slate-950 border-2 border-slate-700 focus:border-cyan-500 text-center text-2xl py-4 rounded-xl text-white outline-none transition-colors"
+                    placeholder="พิมพ์ที่นี่..."
+                />
+            </div>
+        </div>
 
-    const key = dayKey(week[activeDay]);
-    if (!tasks[key]) tasks[key] = [];
+        <!-- 3. หน้าจอจบเกม -->
+        <div id="end-screen" class="hidden bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+            <h2 class="text-3xl font-bold text-red-400 mb-2">หมดเวลา!</h2>
+            <div class="my-8">
+                <div class="text-slate-400 mb-2 uppercase tracking-widest text-sm">คะแนนที่ได้</div>
+                <div id="final-score" class="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-500 mb-4">0</div>
+                <div id="new-record-badge" class="hidden inline-flex items-center gap-2 bg-yellow-500/20 text-yellow-400 px-4 py-2 rounded-full font-bold animate-bounce">
+                    🏆 สร้างสถิติใหม่!
+                </div>
+                <div id="end-high-score" class="text-slate-500 mt-2">คะแนนสูงสุด: 0</div>
+            </div>
+            <button onclick="startGame()" class="bg-slate-100 hover:bg-white text-slate-900 px-8 py-4 rounded-full font-bold text-xl transition-all hover:scale-105 flex items-center justify-center gap-2 mx-auto">
+                🔄 เล่นอีกครั้ง
+            </button>
+        </div>
 
-    const now = new Date();
-    tasks[key].push({
-      id: Date.now(),
-      text,
-      tag,
-      time: `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`,
-      done: false
-    });
+    </div>
 
-    input.value = '';
-    input.focus();
-    renderTabs();
-    renderTasks();
-  }
+    <script>
+        const WORD_LIST = [
+            'javascript', 'developer', 'frontend', 'backend', 'database',
+            'gamification', 'keyboard', 'monitor', 'software', 'hardware',
+            'challenge', 'adventure', 'warrior', 'magic', 'crystal',
+            'monster', 'treasure', 'dungeon', 'castle', 'shield',
+            'mongodb', 'server', 'cloud', 'network', 'function'
+        ];
 
-  function toggleTask(key, idx) {
-    tasks[key][idx].done = !tasks[key][idx].done;
-    renderTasks();
-  }
+        let score = 0;
+        let timeLeft = 60;
+        let combo = 1;
+        let highScore = 0;
+        let currentWord = '';
+        let timerInterval;
 
-  function deleteTask(key, idx) {
-    tasks[key].splice(idx, 1);
-    renderTabs();
-    renderTasks();
-  }
+        const startScreen   = document.getElementById('start-screen');
+        const playingScreen = document.getElementById('playing-screen');
+        const endScreen     = document.getElementById('end-screen');
+        const wordDisplay   = document.getElementById('word-display');
+        const typeInput     = document.getElementById('type-input');
+        const scoreText     = document.getElementById('score-text');
+        const comboText     = document.getElementById('combo-text');
+        const comboBadge    = document.getElementById('combo-badge');
+        const timerText     = document.getElementById('timer-text');
+        const timerIcon     = document.getElementById('timer-icon');
+        const timeBar       = document.getElementById('time-bar');
 
-  function updateStats(list) {
-    const done = list.filter(t => t.done).length;
-    document.getElementById('statTotal').textContent = list.length;
-    document.getElementById('statDone').textContent = done;
-    document.getElementById('statLeft').textContent = list.length - done;
-  }
+        function showScreen(screenId) {
+            startScreen.classList.add('hidden');
+            playingScreen.classList.add('hidden');
+            endScreen.classList.add('hidden');
+            document.getElementById(screenId).classList.remove('hidden');
+        }
 
-  function updateProgress(list) {
-    const total = list.length;
-    const done = list.filter(t => t.done).length;
-    const pct = total === 0 ? 0 : Math.round((done / total) * 100);
-    document.getElementById('progressFill').style.width = pct + '%';
-    document.getElementById('progressPct').textContent = pct + '%';
-    document.getElementById('progressText').textContent =
-      total === 0 ? 'ยังไม่มีรายการ' : `${done} จาก ${total} รายการ`;
-  }
+        function startGame() {
+            score = 0;
+            timeLeft = 60;
+            combo = 1;
 
-  function escapeHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
+            updateScoreUI();
+            updateComboUI();
+            updateTimeUI();
 
-  // Enter key
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('taskInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') addTask();
-    });
-  });
+            generateWord();
+            showScreen('playing-screen');
 
-  init();
-</script>
+            typeInput.value = '';
+            typeInput.focus();
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            updateTimeUI();
+            if (timeLeft <= 0) endGame();
+        }
+
+        function updateTimeUI() {
+            // ✅ แก้ไข: ใช้ backtick ถูกต้อง
+            timerText.innerText = `00:${timeLeft.toString().padStart(2, '0')}`;
+            timeBar.style.width = `${(timeLeft / 60) * 100}%`;
+
+            if (timeLeft <= 10) {
+                timerText.classList.remove('text-cyan-400');
+                timerText.classList.add('text-red-500');
+                timerIcon.classList.add('animate-pulse');
+            } else {
+                timerText.classList.remove('text-red-500');
+                timerText.classList.add('text-cyan-400');
+                timerIcon.classList.remove('animate-pulse');
+            }
+        }
+
+        function generateWord() {
+            const randomIndex = Math.floor(Math.random() * WORD_LIST.length);
+            currentWord = WORD_LIST[randomIndex];
+            renderWord();
+        }
+
+        function renderWord() {
+            const userInput = typeInput.value.toLowerCase();
+            let html = '';
+
+            for (let i = 0; i < currentWord.length; i++) {
+                const char = currentWord[i];
+                let colorClass = 'text-slate-400';
+
+                if (i < userInput.length) {
+                    if (userInput[i] === char) {
+                        colorClass = 'text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]';
+                    } else {
+                        colorClass = 'text-red-500 bg-red-500/20 rounded';
+                    }
+                }
+                // ✅ แก้ไข: ใช้ backtick ถูกต้อง
+                html += `<span class="transition-colors duration-100 ${colorClass}">${char}</span>`;
+            }
+            wordDisplay.innerHTML = html;
+        }
+
+        typeInput.addEventListener('input', (e) => {
+            const userInput = e.target.value.toLowerCase();
+            typeInput.value = userInput;
+
+            let isTypo = false;
+            for (let i = 0; i < userInput.length; i++) {
+                if (userInput[i] !== currentWord[i]) {
+                    isTypo = true;
+                    break;
+                }
+            }
+
+            if (isTypo) {
+                combo = 1;
+                updateComboUI();
+            }
+
+            if (userInput === currentWord) {
+                score += (10 * combo);
+                combo = Math.min(combo + 1, 5);
+
+                updateScoreUI();
+                updateComboUI();
+
+                typeInput.value = '';
+                generateWord();
+            } else {
+                renderWord();
+            }
+        });
+
+        function updateScoreUI() {
+            scoreText.innerText = score;
+        }
+
+        function updateComboUI() {
+            comboText.innerText = combo;
+            if (combo > 1) {
+                comboBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-full font-bold text-lg transition-all bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 scale-110';
+            } else {
+                comboBadge.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-full font-bold text-lg transition-all text-slate-500';
+            }
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+
+            document.getElementById('final-score').innerText = score;
+
+            const newRecordBadge = document.getElementById('new-record-badge');
+            if (score > highScore && score > 0) {
+                highScore = score;
+                newRecordBadge.classList.remove('hidden');
+                document.getElementById('high-score-display').classList.remove('hidden');
+                document.getElementById('high-score-val').innerText = highScore;
+            } else {
+                newRecordBadge.classList.add('hidden');
+            }
+
+            // ✅ แก้ไข: ใช้ backtick ถูกต้อง
+            document.getElementById('end-high-score').innerText = `คะแนนสูงสุด: ${Math.max(score, highScore)}`;
+            showScreen('end-screen');
+        }
+    </script>
 </body>
 </html>
