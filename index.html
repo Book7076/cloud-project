@@ -1,53 +1,258 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Quest - Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-950 text-white font-mono flex items-center justify-center min-h-screen p-4 selection:bg-cyan-900">
 
-<body>
+    <div class="max-w-2xl w-full">
+        
+        <!-- 1. หน้าจอเริ่มเกม -->
+        <div id="start-screen" class="bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center shadow-[0_0_50px_rgba(0,0,0,0.5)] relative">
+            
+            <!-- ปุ่มออกจากระบบ -->
+            <button onclick="logout()" class="absolute top-6 right-6 text-slate-500 hover:text-red-400 text-sm flex items-center gap-1 transition-colors">
+                🚪 ออกจากระบบ
+            </button>
 
-    <h2>Todo List</h2>
+            <div class="text-6xl mb-6 text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">⌨️</div>
+            <h1 class="text-4xl md:text-6xl font-black mb-4 tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 font-sans">
+                TYPING QUEST
+            </h1>
 
-    <input id="task">
-    <button onclick="addTask()">Add</button>
+            <p class="text-xl text-emerald-400 mb-6 font-bold">
+                ยินดีต้อนรับ, <span id="player-name">...</span>!
+            </p>
 
-    <ul id="list"></ul>
+            <p class="text-slate-400 mb-8 text-lg">
+                พิมพ์คำศัพท์ให้เร็วและแม่นยำที่สุดภายใน 60 วินาที<br/>
+                พิมพ์ต่อเนื่องเพื่อสะสม <span class="text-yellow-400 font-bold">Combo Multiplier!</span>
+            </p>
+            <button onclick="startGame()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 px-8 py-4 rounded-full font-bold text-xl transition-all hover:scale-105 flex items-center justify-center gap-2 mx-auto shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                ▶ เริ่มเกม
+            </button>
+            <div id="high-score-display" class="mt-8 text-yellow-500 font-bold hidden">
+                🏆 คะแนนสูงสุด: <span id="high-score-val">0</span>
+            </div>
+        </div>
+
+        <!-- 2. หน้าจอขณะเล่น -->
+        <div id="playing-screen" class="hidden space-y-6">
+            <div class="flex items-center justify-between bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-lg">
+                <div class="flex items-center gap-3 w-1/3">
+                    <span id="timer-icon" class="text-xl">⏱️</span>
+                    <span id="timer-text" class="text-2xl font-bold text-cyan-400">00:60</span>
+                </div>
+                <div class="w-1/3 text-center">
+                    <div id="combo-badge" class="inline-flex items-center gap-1 px-3 py-1 rounded-full font-bold text-lg text-slate-500 transition-all">
+                        ⚡ x<span id="combo-text">1</span> COMBO
+                    </div>
+                </div>
+                <div class="flex items-center justify-end gap-2 w-1/3">
+                    <span class="text-slate-400">SCORE</span>
+                    <span id="score-text" class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">0</span>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center shadow-2xl relative overflow-hidden">
+                <div id="time-bar" class="absolute top-0 left-0 h-1 bg-cyan-500 transition-all duration-1000 ease-linear" style="width: 100%"></div>
+
+                <div id="word-loading" class="hidden text-slate-500 text-lg mb-12 animate-pulse font-sans">กำลังโหลดคำ...</div>
+                <div id="word-display" class="text-5xl md:text-7xl font-bold tracking-widest mb-12 select-none"></div>
+
+                <input
+                    id="type-input"
+                    type="text"
+                    autocomplete="off"
+                    spellcheck="false"
+                    class="w-full bg-slate-950 border-2 border-slate-700 focus:border-cyan-500 text-center text-2xl py-4 rounded-xl text-white outline-none transition-colors"
+                    placeholder="พิมพ์ที่นี่..."
+                />
+
+                <div id="api-status" class="mt-4 text-xs text-slate-600 font-sans">
+                    🌐 Datamuse API
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. หน้าจอจบเกม -->
+        <div id="end-screen" class="hidden bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+            <h2 class="text-3xl font-bold text-red-400 mb-2 font-sans">หมดเวลา!</h2>
+            <div class="my-8">
+                <div class="text-slate-400 mb-2 uppercase tracking-widest text-sm font-sans">คะแนนที่ได้</div>
+                <div id="final-score" class="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-500 mb-4 font-sans">0</div>
+                <div id="new-record-badge" class="hidden inline-flex items-center gap-2 bg-yellow-500/20 text-yellow-400 px-4 py-2 rounded-full font-bold animate-bounce font-sans">
+                    🏆 สร้างสถิติใหม่!
+                </div>
+                <div id="end-high-score" class="text-slate-500 mt-2 font-sans">คะแนนสูงสุด: 0</div>
+            </div>
+            <button onclick="startGame()" class="bg-slate-100 hover:bg-white text-slate-900 px-8 py-4 rounded-full font-bold text-xl transition-all hover:scale-105 flex items-center justify-center gap-2 mx-auto font-sans">
+                🔄 เล่นอีกครั้ง
+            </button>
+        </div>
+
+    </div>
 
     <script>
-
-        async function loadTasks() {
-
-            const res = await fetch("http://localhost:3000/todos")
-            const data = await res.json()
-
-            const list = document.getElementById("list")
-            list.innerHTML = ""
-
-            data.forEach(t => {
-                const li = document.createElement("li")
-                li.innerText = t
-                list.appendChild(li)
-            })
-
+        // === 1. Auth Guard ===
+        const currentUser = localStorage.getItem('username');
+        if (!currentUser) {
+            window.location.href = '/login';
+        } else {
+            document.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('player-name').innerText = currentUser;
+                const savedHighScore = localStorage.getItem(`highScore_${currentUser}`);
+                if (savedHighScore) {
+                    highScore = parseInt(savedHighScore);
+                    document.getElementById('high-score-display').classList.remove('hidden');
+                    document.getElementById('high-score-val').innerText = highScore;
+                }
+            });
         }
 
-        async function addTask() {
-
-            const task = document.getElementById("task").value
-
-            await fetch("http://localhost:3000/todos", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ task })
-            })
-
-            loadTasks()
-
+        function logout() {
+            localStorage.removeItem('username');
+            window.location.href = '/login';
         }
 
-        loadTasks()
+        // === 2. Game Logic ===
+        const FALLBACK_WORDS = ['javascript', 'developer', 'frontend', 'backend', 'database', 'keyboard', 'monster', 'treasure', 'server', 'cloud', 'network'];
+        let score = 0, timeLeft = 60, combo = 1, highScore = 0, currentWord = '', timerInterval, isFetching = false;
 
+        function showScreen(screenId) {
+            ['start-screen', 'playing-screen', 'end-screen'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function startGame() {
+            score = 0; timeLeft = 60; combo = 1;
+            updateScoreUI(); updateComboUI(); updateTimeUI();
+            showScreen('playing-screen');
+            const typeInput = document.getElementById('type-input');
+            typeInput.value = ''; typeInput.disabled = false; typeInput.focus();
+            generateWord();
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            timeLeft--; updateTimeUI();
+            if (timeLeft <= 0) endGame();
+        }
+
+        function updateTimeUI() {
+            document.getElementById('timer-text').innerText = `00:${timeLeft.toString().padStart(2, '0')}`;
+            document.getElementById('time-bar').style.width = `${(timeLeft / 60) * 100}%`;
+            const timerIcon = document.getElementById('timer-icon');
+            if (timeLeft <= 10) {
+                document.getElementById('timer-text').className = 'text-2xl font-bold text-red-500';
+                timerIcon.classList.add('animate-pulse');
+            } else {
+                document.getElementById('timer-text').className = 'text-2xl font-bold text-cyan-400';
+                timerIcon.classList.remove('animate-pulse');
+            }
+        }
+
+        async function generateWord() {
+            if (isFetching) return;
+            isFetching = true;
+            const wordDisplay = document.getElementById('word-display');
+            const wordLoading = document.getElementById('word-loading');
+            const typeInput = document.getElementById('type-input');
+            const apiStatus = document.getElementById('api-status');
+
+            wordDisplay.classList.add('hidden');
+            wordLoading.classList.remove('hidden');
+
+            try {
+                const randomLetter = String.fromCharCode(97 + Math.floor(Math.random() * 26));
+                const res = await fetch(`https://api.datamuse.com/words?sp=${randomLetter}???*&max=30`);
+                const data = await res.json();
+                
+                if (data && data.length > 0) {
+                    const validWords = data.filter(item => /^[a-z]+$/.test(item.word));
+                    currentWord = validWords[Math.floor(Math.random() * validWords.length)].word.toLowerCase();
+                } else {
+                    throw new Error('No words');
+                }
+                apiStatus.textContent = '🌐 Datamuse API ✓';
+                apiStatus.className = 'mt-4 text-xs text-slate-600 font-sans';
+            } catch (err) {
+                currentWord = FALLBACK_WORDS[Math.floor(Math.random() * FALLBACK_WORDS.length)];
+                apiStatus.textContent = '⚠️ Offline Mode (Fallback)';
+                apiStatus.className = 'mt-4 text-xs text-red-700 font-sans';
+            } finally {
+                isFetching = false;
+                wordLoading.classList.add('hidden');
+                wordDisplay.classList.remove('hidden');
+                typeInput.focus();
+                renderWord();
+            }
+        }
+
+        function renderWord() {
+            const userInput = document.getElementById('type-input').value.toLowerCase();
+            let html = '';
+            for (let i = 0; i < currentWord.length; i++) {
+                const char = currentWord[i];
+                let colorClass = 'text-slate-400';
+                if (i < userInput.length) {
+                    colorClass = userInput[i] === char ? 'text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]' : 'text-red-500 bg-red-500/20 rounded';
+                }
+                html += `<span class="transition-colors duration-100 ${colorClass}">${char}</span>`;
+            }
+            document.getElementById('word-display').innerHTML = html;
+        }
+
+        document.getElementById('type-input').addEventListener('input', (e) => {
+            if (isFetching) return;
+            const val = e.target.value.toLowerCase();
+            e.target.value = val;
+            let isTypo = false;
+            for (let i = 0; i < val.length; i++) {
+                if (val[i] !== currentWord[i]) { isTypo = true; break; }
+            }
+            if (isTypo) { combo = 1; updateComboUI(); }
+            if (val === currentWord) {
+                score += (10 * combo);
+                combo = Math.min(combo + 1, 5);
+                updateScoreUI(); updateComboUI();
+                e.target.value = ''; generateWord();
+            } else {
+                renderWord();
+            }
+        });
+
+        function updateScoreUI() { document.getElementById('score-text').innerText = score; }
+        function updateComboUI() {
+            document.getElementById('combo-text').innerText = combo;
+            document.getElementById('combo-badge').className = combo > 1 
+                ? 'inline-flex items-center gap-1 px-3 py-1 rounded-full font-bold text-lg transition-all bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 scale-110' 
+                : 'inline-flex items-center gap-1 px-3 py-1 rounded-full font-bold text-lg transition-all text-slate-500';
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            document.getElementById('final-score').innerText = score;
+            const badge = document.getElementById('new-record-badge');
+            if (score > highScore && score > 0) {
+                highScore = score;
+                localStorage.setItem(`highScore_${currentUser}`, highScore);
+                badge.classList.remove('hidden');
+                document.getElementById('high-score-display').classList.remove('hidden');
+                document.getElementById('high-score-val').innerText = highScore;
+            } else {
+                badge.classList.add('hidden');
+            }
+            document.getElementById('end-high-score').innerText = `คะแนนสูงสุด: ${Math.max(score, highScore)}`;
+            showScreen('end-screen');
+        }
     </script>
-
 </body>
-
 </html>
