@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const mongoose = require("mongoose");
-// นำเข้าโมเดล User จากโฟลเดอร์ models (ตรวจสอบว่ามีโฟลเดอร์ models และไฟล์ User.js)
+// นำเข้าโมเดล User จากโฟลเดอร์ models
 const User = require("./models/User");
 // เรียกใช้งาน dotenv เพื่อจัดการค่าตัวแปรสภาพแวดล้อม
 require("dotenv").config();
@@ -13,7 +13,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 1. เชื่อมต่อ MongoDB Atlas (ควรใส่ URL ไว้ในไฟล์ .env)
+// 1. เชื่อมต่อ MongoDB Atlas
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://cloud:cloud123456789@cluster0.jts86h0.mongodb.net/myapp";
 
 mongoose.connect(MONGODB_URI)
@@ -60,7 +60,12 @@ app.post("/api/register", async (req, res) => {
         console.log(`👤 สมาชิกลงทะเบียนใหม่: ${username}`);
         res.status(201).json({ message: "สมัครสมาชิกสำเร็จเรียบร้อย" });
     } catch (err) {
-        // พิมพ์ข้อผิดพลาดจริงลงใน Terminal เพื่อใช้ในการตรวจสอบ
+        if (err.code === 11000) {
+            console.error("🚨 Duplicate Key Error:", err.keyValue);
+            return res.status(400).json({ 
+                error: "เกิดข้อผิดพลาดด้านข้อมูลซ้ำในระบบ" 
+            });
+        }
         console.error("🚨 Register Error:", err.message);
         res.status(500).json({ error: "เกิดข้อผิดพลาดที่เซิร์ฟเวอร์ในการสมัครสมาชิก" });
     }
@@ -112,6 +117,23 @@ app.post("/api/save-score", async (req, res) => {
     } catch (err) {
         console.error("🚨 Save Score Error:", err.message);
         res.status(500).json({ error: "ไม่สามารถบันทึกคะแนนลงฐานข้อมูลได้" });
+    }
+});
+
+// ==========================================
+// 5. API จัดอันดับคะแนน (Leaderboard) - เพิ่มใหม่
+// ==========================================
+app.get("/api/leaderboard", async (req, res) => {
+    try {
+        // ดึงข้อมูลผู้ใช้ 10 อันดับแรก เรียงตาม highScore จากมากไปน้อย (-1)
+        const topUsers = await User.find({}, 'username highScore')
+            .sort({ highScore: -1 })
+            .limit(10);
+            
+        res.json(topUsers);
+    } catch (err) {
+        console.error("🚨 Leaderboard Error:", err.message);
+        res.status(500).json({ error: "ไม่สามารถดึงข้อมูลจัดอันดับได้" });
     }
 });
 

@@ -40,7 +40,11 @@
                 </div>
             </div>
 
-            <button onclick="startGame()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 px-8 py-4 rounded-full font-bold text-xl transition-all hover:scale-105 mx-auto shadow-lg">▶ เริ่มเกม</button>
+            <div class="flex justify-center gap-4">
+                <button onclick="startGame()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 px-8 py-4 rounded-full font-bold text-xl transition-all hover:scale-105 shadow-lg">▶ เริ่มเกม</button>
+                <button onclick="openLeaderboard()" class="bg-yellow-500 hover:bg-yellow-400 text-slate-950 px-6 py-4 rounded-full font-bold text-lg transition-all hover:scale-105 shadow-lg flex items-center gap-2">🏆 จัดอันดับ</button>
+            </div>
+            
             <div id="high-score-display" class="mt-8 text-yellow-500 font-bold hidden">🏆 คะแนนสูงสุด: <span id="high-score-val">0</span></div>
         </div>
 
@@ -72,6 +76,20 @@
             <div class="text-slate-400 mb-2 mt-8 uppercase tracking-widest text-sm">คะแนนที่ได้</div>
             <div id="final-score" class="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-500 mb-8">0</div>
             <button onclick="window.location.reload()" class="bg-slate-100 hover:bg-white text-slate-900 px-8 py-4 rounded-full font-bold text-xl transition-all hover:scale-105">
+                🏠 กลับหน้าแรก
+            </button>
+        </div>
+
+        <!-- 4. หน้าจอจัดอันดับ (Leaderboard) -->
+        <div id="leaderboard-screen" class="hidden bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center shadow-2xl relative">
+            <h2 class="text-3xl font-black text-yellow-400 mb-6 flex items-center justify-center gap-2">
+                🏆 Top 10 Leaderboard
+            </h2>
+            <!-- พื้นที่แสดงรายชื่อ -->
+            <div id="leaderboard-list" class="space-y-3 mb-8 text-left h-64 overflow-y-auto pr-2 custom-scrollbar">
+                <!-- ข้อมูลจะถูกดึงมาใส่ตรงนี้ -->
+            </div>
+            <button onclick="showScreen('start-screen')" class="bg-slate-100 hover:bg-white text-slate-900 px-8 py-3 rounded-full font-bold transition-all hover:scale-105">
                 🏠 กลับหน้าแรก
             </button>
         </div>
@@ -124,8 +142,50 @@
         }
 
         function showScreen(id) {
-            ['start-screen', 'playing-screen', 'end-screen'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            ['start-screen', 'playing-screen', 'end-screen', 'leaderboard-screen'].forEach(s => document.getElementById(s).classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
+        }
+
+        // ฟังก์ชันดึงและแสดงข้อมูล Leaderboard
+        async function openLeaderboard() {
+            showScreen('leaderboard-screen');
+            const listEl = document.getElementById('leaderboard-list');
+            listEl.innerHTML = '<div class="text-center text-slate-400 mt-10 animate-pulse">กำลังโหลดข้อมูล...</div>';
+
+            try {
+                const res = await fetch('/api/leaderboard');
+                if(!res.ok) throw new Error('Failed to fetch');
+                const data = await res.json();
+
+                if(data.length === 0) {
+                    listEl.innerHTML = '<div class="text-center text-slate-500 mt-10">ยังไม่มีข้อมูลคะแนน</div>';
+                    return;
+                }
+
+                listEl.innerHTML = data.map((user, index) => {
+                    let medal = '';
+                    if(index === 0) medal = '🥇';
+                    else if(index === 1) medal = '🥈';
+                    else if(index === 2) medal = '🥉';
+                    else medal = `<span class="w-6 inline-block text-center text-slate-500">${index + 1}</span>`;
+
+                    // ไฮไลท์สีให้ชื่อของเราเอง
+                    const isMe = user.username === currentUser ? 'bg-cyan-900/40 border-cyan-500/50' : 'bg-slate-800 border-slate-700';
+
+                    return `
+                        <div class="flex justify-between items-center p-3 rounded-xl border ${isMe}">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xl">${medal}</span>
+                                <span class="font-bold ${user.username === currentUser ? 'text-cyan-400' : 'text-slate-200'}">${user.username}</span>
+                            </div>
+                            <div class="font-black text-green-400">${user.highScore}</div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch(e) {
+                listEl.innerHTML = '<div class="text-center text-red-500 mt-10">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
+            }
         }
 
         function startGame() {
