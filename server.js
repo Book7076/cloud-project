@@ -3,11 +3,11 @@ const cors = require("cors");
 const path = require("path");
 const mongoose = require("mongoose");
 // นำเข้าโมเดล User จากโฟลเดอร์ models
-const User = require("./models/User");
 // เรียกใช้งาน dotenv เพื่อจัดการค่าตัวแปรสภาพแวดล้อม
 require("dotenv").config();
 
 const app = express();
+const User = require("./models/User")
 
 // ตั้งค่า Middleware
 app.use(cors());
