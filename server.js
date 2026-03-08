@@ -18,7 +18,7 @@ const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://cloud:cloud1234567
 
 mongoose.connect(MONGODB_URI)
     .then(() => console.log("✅ เชื่อมต่อ MongoDB Atlas สำเร็จแล้ว"))
-    .catch(err => {
+    .catch(err => { 
         console.error("❌ เกิดข้อผิดพลาดในการเชื่อมต่อ MongoDB:");
         console.error(err.message);
     });
